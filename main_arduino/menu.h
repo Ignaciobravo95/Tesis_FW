@@ -18,7 +18,7 @@
 #define BLUE    	0x001F
 #define RED     	0xF800
 #define GREEN   	0x07E0
-#define CYAN    	0x07FF
+#define CYAN    	0x04F3
 #define MAGENTA 	0xF81F
 #define YELLOW  	0xFFE0
 #define WHITE		0xFFFF
@@ -51,5 +51,17 @@ void init_tft();
  */
 void menu_principal(uint8_t index, bool refresh);
 
+/************************************************
+ *   		FUNCTIONS DECLARATION
+ ***********************************************/
+/**
+ * @brief <Imprime el menu principal en el display>
+ *
+ *
+ * @param <index> 	<Resalta la opcion seleccionada.>
+ * @param <refresh> <Refresca la pantalla>
+ *
+ */
+void menu_visualizacion(uint8_t index, bool refresh, float value);
 
 #endif
