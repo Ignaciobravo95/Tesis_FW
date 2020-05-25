@@ -10,7 +10,7 @@ Aca podriamos definir algunas pautas para que todos podamos escribir el codigo y
 
 
 # PROTOTIPO DE FUNCION
-
+``` C
 /**
  * @brief <Add Brief Description of Function Here>
  *
@@ -24,3 +24,4 @@ Aca podriamos definir algunas pautas para que todos podamos escribir el codigo y
  * @return <Add Return Informaiton here>
  */
 void function();
+``` 
