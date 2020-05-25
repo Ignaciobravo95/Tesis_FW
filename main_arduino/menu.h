@@ -5,11 +5,52 @@
  *  		   INCLUDES SECTION
  ***********************************************/
 #include <Stdint.h>				
+#include <stddef.h>
 #include <avr/pgmspace.h>
+
+
+// / LINK ( VISUALIZACION - PAC - CONF )	
+// 	/ nextMenu != NULL
+// 	/ doAction == NULL
+
+// / LINK + ACCION 
+// 	/ nextMenu != NULL
+// 	/ doAction != NULL
+
+// / ACCION
+// 	/ nextMenu == NULL
+// 	/ doAction != NULL
+
+// / VALOR ( FRECUENCIA ) / 
+// 	/ blinking = 0 = no lo estoy modificando o 1 = modificando ; 
+// 	/ nextMenu == NULL
+// 	/ doAction == NULL
+// 	/ blinking_function != NULL
+// 	/ curr_value 		= value_frecuencia;
+// 	/ tmp_value			= valor temporal ;
+// 	/ value_limit 		= 100;
+
+
 /************************************************
  *  		TYPEDEF SECTION
  ***********************************************/
+typedef struct menu_item{
+	bool blinking = 0;
+	uint16_t value_limit = 0;
+	uint16_t tmp_value = 0;
+	uint16_t curr_value = 0;
+	void (*blinking_function)(uint16_t x, uint8_t force) = NULL;
+	void (*doAction)() = NULL;
+	void *nextMenu = NULL;
+}menuItem_t;
 
+typedef struct menu_page{
+	uint8_t items_number = 0;
+	menuItem_t item[5];
+	void (*display_header)() = NULL;
+	void (*display_option)(uint8_t i) = NULL;
+	void (*display_fields)(uint16_t x, uint16_t y, uint8_t z) = NULL;
+}menu_t;
 /************************************************
  *   		DEFINES SECTION
  ***********************************************/
@@ -30,6 +71,7 @@
 /************************************************
  *   		FUNCTIONS DECLARATION
  ***********************************************/
+
 /**
  * @brief Inicializa el objeto del TFT. 
  *
@@ -38,30 +80,214 @@
  */
 void init_tft();
 
-/************************************************
- *   		FUNCTIONS DECLARATION
- ***********************************************/
 /**
- * @brief <Imprime el menu principal en el display>
+ * @brief <Imprime los graficos estaticos del menu principal>
  *
  *
- * @param <index> 	<Resalta la opcion seleccionada.>
- * @param <refresh> <Refresca la pantalla>
+ * @param 	No
+ * @return  No
  *
  */
-void menu_principal(uint8_t index, bool refresh);
+void menu_principal_header();
 
-/************************************************
- *   		FUNCTIONS DECLARATION
- ***********************************************/
+/**
+ * @brief <Imprime los graficos estaticos del menu visualizacion>
+ *
+ *
+ * @param 	No
+ * @return  No
+ *
+ */
+void menu_visualizacion_header();
+
+/**
+ * @brief <Imprime los graficos estaticos del menu pacientes>
+ *
+ *
+ * @param 	No
+ * @return  No
+ *
+ */
+void menu_pacientes_header();
+
+/**
+ * @brief <Imprime los graficos estaticos del menu configuracion>
+ *
+ *
+ * @param 	No
+ * @return  No
+ *
+ */
+void menu_configuracion_header();
+
+/**
+ * @brief <Imprime grafico que muestra resalta la opcion seleccionada >
+ *
+ *
+ * @param 	<i> indice de la opcion seleccionada
+ * @return  No
+ *
+ */
+void menu_principal_option(uint8_t i);
+
+/**
+ * @brief <Imprime grafico que muestra resalta la opcion seleccionada >
+ *
+ *
+ * @param 	<i> indice de la opcion seleccionada
+ * @return  No
+ *
+ */
+void menu_visualizacion_option(uint8_t i);
+
+/**
+ * @brief <Imprime grafico que muestra resalta la opcion seleccionada >
+ *
+ *
+ * @param 	<i> indice de la opcion seleccionada
+ * @return  No
+ *
+ */
+void menu_pacientes_option(uint8_t i);
+
+/**
+ * @brief <Imprime grafico que muestra resalta la opcion seleccionada >
+ *
+ *
+ * @param 	<i> indice de la opcion seleccionada
+ * @return  No
+ *
+ */
+void menu_configuracion_option(uint8_t i);
+
+/**
+ * @brief <Imprime los campos que van a ser editables luego>
+ *
+ *
+ * @param <i> 	<Resalta la opcion seleccionada.>
+ * @param <refresh> <Refresca la pantalla>
+ *
+ */
+void menu_visualizacion_fields(uint16_t x,uint16_t y,uint16_t z);
+
 /**
  * @brief <Imprime el menu principal en el display>
  *
  *
- * @param <index> 	<Resalta la opcion seleccionada.>
+ * @param <i> 	<Resalta la opcion seleccionada.>
  * @param <refresh> <Refresca la pantalla>
  *
  */
-void menu_visualizacion(uint8_t index, bool refresh, float value);
+void menu_visualizacion_signal(uint8_t x, uint8_t reset);
+
+/**
+ * @brief <Imprime el menu principal en el display>
+ *
+ *
+ * @param <i> 	<Resalta la opcion seleccionada.>
+ * @param <refresh> <Refresca la pantalla>
+ *
+ */
+void menu_paciente_fields(uint16_t x,uint16_t y,uint16_t z);
+
+/**
+ * @brief <Imprime el menu principal en el display>
+ *
+ *
+ * @param <i> 	<Resalta la opcion seleccionada.>
+ * @param <refresh> <Refresca la pantalla>
+ *
+ */
+void menu_configuracion_fields(uint16_t x,uint16_t y,uint16_t z);
+
+/**
+ * @brief <Imprime el menu principal en el display>
+ *
+ *
+ * @param <i> 	<Resalta la opcion seleccionada.>
+ * @param <refresh> <Refresca la pantalla>
+ *
+ */
+void menu_pacientes_fields(uint16_t x,uint16_t y,uint16_t z);
+
+/**
+ * @brief <Imprime el menu principal en el display>
+ *
+ *
+ * @param <i> 	<Resalta la opcion seleccionada.>
+ * @param <refresh> <Refresca la pantalla>
+ *
+ */
+void batteryStatus(uint8_t x);
+
+/**
+ * @brief <Imprime el menu principal en el display>
+ *
+ *
+ * @param <i> 	<Resalta la opcion seleccionada.>
+ * @param <refresh> <Refresca la pantalla>
+ *
+ */
+void bluetoothStatus(uint8_t x);
+
+/**
+ * @brief <Imprime el menu principal en el display>
+ *
+ *
+ * @param <i> 	<Resalta la opcion seleccionada.>
+ * @param <refresh> <Refresca la pantalla>
+ *
+ */
+void blinkREC(uint8_t force);
+
+/**
+ * @brief <Imprime el menu principal en el display>
+ *
+ *
+ * @param <i> 	<Resalta la opcion seleccionada.>
+ * @param <refresh> <Refresca la pantalla>
+ *
+ */
+void blinkBUJIA(uint16_t x, uint8_t force);
+
+/**
+ * @brief <Imprime el menu principal en el display>
+ *
+ *
+ * @param <i> 	<Resalta la opcion seleccionada.>
+ * @param <refresh> <Refresca la pantalla>
+ *
+ */
+void blinkIDPACIENTE(uint16_t x, uint8_t force);
+
+/**
+ * @brief <Imprime el menu principal en el display>
+ *
+ *
+ * @param <i> 	<Resalta la opcion seleccionada.>
+ * @param <refresh> <Refresca la pantalla>
+ *
+ */
+void blinkTH(uint16_t x, uint8_t force);
+
+/**
+ * @brief <Imprime el menu principal en el display>
+ *
+ *
+ * @param <i> 	<Resalta la opcion seleccionada.>
+ * @param <refresh> <Refresca la pantalla>
+ *
+ */
+void blinkFREQ(uint16_t x, uint8_t force);
+
+/**
+ * @brief <Imprime el menu principal en el display>
+ *
+ *
+ * @param <i> 	<Resalta la opcion seleccionada.>
+ * @param <refresh> <Refresca la pantalla>
+ *
+ */
+void blinkMODO(uint16_t x, uint8_t force);
 
 #endif
