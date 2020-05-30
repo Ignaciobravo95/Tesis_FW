@@ -1,7 +1,8 @@
 /************************************************
  *  		   INCLUDES SECTION
  ***********************************************/
-#include "menu.h"  
+#include "menu.h"
+#include <math.h>
 #include <TimerOne.h>
 
 /************************************************
@@ -13,7 +14,7 @@
 #define pinLED1 13 // CPU state
 #define TIMER0_PERIOD		  	1000	 /* us */	
 #define PERIODIC_TASK1_PERIOD 	10000000 /*  = 10s*/
-#define PERIODIC_TASK2_PERIOD 	250000   /*  = 0.25S */
+#define PERIODIC_TASK2_PERIOD 	100000   /*  = 0.1S */
 
 /************************************************
  *   		FUNCTIONS DECLARATION
@@ -21,10 +22,24 @@
 void eeprom_write();
 void clearFlagRecordingSD();
 void setFlagRecordingSD();
+uint8_t checknDigits(uint16_t x);
+uint8_t getDigitValue(uint16_t x, uint8_t dig);
+uint16_t modValueDigit(uint16_t x, uint8_t dig, uint8_t digitValue);
+uint8_t getLastDigitMax(uint16_t max, uint16_t x, uint8_t numdig);
 
 /************************************************
  *   		GLOBAL DATA SECTION
  ***********************************************/
+/* CONST */
+uint32_t pow_10_lut[10] = {	1,
+							10,
+							100,
+							1000,
+							10000,
+							100000,
+							1000000,
+							10000000,
+							100000000};
 /* INTERRUPT FLAGS */
 volatile bool flag_butt_pressed = false;
 volatile bool flag_encoder = false;
@@ -37,10 +52,14 @@ volatile bool flag_periodic_task3 = false;
 volatile uint8_t lastEncoderState = 0;
 volatile uint32_t count = 0; 
 uint32_t task3_count_value = 0, task2_count_value = 0, task1_count_value = 0;
-uint8_t index = 0; 
-
-uint16_t encoder_count = 0, upperlimit = 0, encoder_mode = 0;
+uint16_t upperlimit = 0;
 uint8_t recordingSD = 0;
+
+/* GLOBAL SCOPE? */
+uint8_t index = 0;  							// selected item number 
+uint8_t digit = 0, nDigit = 1;					// digit being edited and number of digits
+uint16_t encoder_count = 0, encoder_mode = 0;  	// encoder mode - 0 switch items - 1 modifie value
+
 
 /* MENU ITEMS */
 menu_t PPAL, VIS, PAC, CONF;
@@ -58,7 +77,7 @@ void setup(void){
 	/* READ CONFIG FROM EEPROM */
 	value_bujia = 8;
 	value_th = 99;
-	value_frec = 2;
+	value_frec = 1;
 	value_mode = 0;
 	value_paciente = 33223;
 
@@ -165,8 +184,9 @@ void setup(void){
 }
 
 void loop(void){
-	uint8_t i = 0;
-	uint8_t press = 10;
+	uint8_t i = 0;									// extra 
+
+	
 	/* Main LOOP */
 	/* BUTTON PRESSED EVENT */
 	if (flag_butt_pressed){
@@ -179,8 +199,7 @@ void loop(void){
 		- ENABLE BLINKING
 		******************************/	
 		if (currItem -> doAction != NULL ) {
-			if ( (currMenu == &VIS) && (currItem == &VIS.item[2] ) && (currItem -> blinking == 0));
-			else currItem -> doAction();	
+			currItem -> doAction();	
 		}
 		if (currItem -> nextMenu != NULL ){
 			menu_visualizacion_signal(0, true);
@@ -188,9 +207,7 @@ void loop(void){
 			index = 0;
 			currMenu = currItem -> nextMenu;
 			currItem = &currMenu -> item[index];
-			for ( i = 0; i < currMenu -> items_number ; i++ ){
-				currMenu->item[i].tmp_value = currMenu->item[i].curr_value;			
-			}
+			for ( i = 0; i < currMenu -> items_number ; i++ ) currMenu->item[i].tmp_value = currMenu->item[i].curr_value;
 			currMenu -> display_header();
 			currMenu -> display_option(index);
 			if (currMenu -> display_fields != NULL ){
@@ -205,26 +222,42 @@ void loop(void){
 			encoder_count = index;
 		}
 		else if (currItem -> blinking_function != NULL ){
-			if ( currItem -> blinking ){
-				currItem -> blinking_function(encoder_count, true);
-				currItem -> blinking = 0;
-				encoder_mode = 0;
-				encoder_count = index;
-				upperlimit = currMenu -> items_number;
-			}
-			else{
+			/* IF IM NOT EDITING VALUE START EDITING*/
+			if ( currItem -> blinking == 0){
 				encoder_mode = 1;
 				currItem -> blinking = 1;
-				upperlimit = currItem -> value_limit;
-				encoder_count = currItem -> tmp_value;
+				nDigit = checknDigits( currItem -> value_limit - 1);     // numero de digitos		
+				encoder_count = getDigitValue(currItem -> tmp_value, 0); // valor del primer digito
+				if (digit == nDigit - 1){								 // en caso de que solo tenga 1 digito	
+					upperlimit = getLastDigitMax(currItem -> value_limit - 1, currItem ->tmp_value, nDigit);	
+				}else{
+					upperlimit = 10;
+				}
 			}
+			/* IF IM EDITING CHECK WICH DIGIT IM EDITING */
+			else if ( currItem -> blinking == 1){
+				encoder_count = getDigitValue(currItem -> tmp_value, ++digit); 
+				/* IF LAST DIGIT, MAKE SURE DONT EXCEED UPPER LIMIT*/
+				if (digit == nDigit - 1){
+					upperlimit = getLastDigitMax(currItem -> value_limit - 1, currItem ->tmp_value, nDigit);	
+				}
+				else if (digit >= nDigit){
+					/* IF I WENT OVER ALL DIGITS, STOP EDITING */
+					currItem -> blinking_function(currItem -> tmp_value, true, 0);
+					digit = 0;
+					currItem -> blinking = 0;
+					encoder_mode = 0;
+					encoder_count = index;
+					upperlimit = currMenu -> items_number;			
+				}
+			}			
 		}		
 		/******************************/
 		Serial.println("button_pressed");
 		flag_butt_pressed = false;
 	}
 
-	/* ENCODER ROTATING */
+	/* ENCODER ROTATING EVENT */
 	if (flag_encoder){
 		digitalWrite(pinLED1, HIGH);
 		/******************************
@@ -244,18 +277,18 @@ void loop(void){
 			currItem = &currMenu-> item[index];
 			currMenu->display_option(index);
 		}else{
-			currItem -> tmp_value = encoder_count;				
+			currItem -> tmp_value = modValueDigit(currItem -> tmp_value, digit, encoder_count);				
 		}
 		/******************************/
 		Serial.println("encoder_rotated");
 		flag_encoder = false;
 	}
 
-	/* PERIODIC TASK 1 */
+	/* PERIODIC TASK 1 EVENT */
 	if ((flag_periodic_task1) && (!flag_periodic_task2) && (!flag_periodic_task3) ){
 		digitalWrite(pinLED1, HIGH);
 		/******************************
-		- CHECK PERIODIC TASK:
+		- CHECK PERIODIC TASK W/LESS PRIORITY:
 			- BATTERY VOLTAGE  
 			- BLUETOOTH STATUS 
 		******************************/
@@ -266,20 +299,20 @@ void loop(void){
 		flag_periodic_task1 = false;
 	}
 
-	/* PERIODIC TASK 2 */
+	/* PERIODIC TASK 2 EVENT */
 	if ((flag_periodic_task2) && (!flag_periodic_task3)){
 		digitalWrite(pinLED1, HIGH);
 		/******************************
 		- BLINK IF ANY BLINKING ITEMS 
 		******************************/
-		if (currItem -> blinking) currItem -> blinking_function(encoder_count, false);
+		if (currItem -> blinking) currItem -> blinking_function(currItem->tmp_value, false, digit);
 		if (recordingSD) blinkREC(false);
 		/******************************/
 		Serial.println("DOS 2.");
 		flag_periodic_task2 = false;
 	}
 
-	/* PERIODIC TASK 3 */
+	/* PERIODIC TASK 3 EVENT */
 	if(flag_periodic_task3){
 		digitalWrite(pinLED1, HIGH);
 		/******************************
@@ -293,7 +326,7 @@ void loop(void){
 		flag_periodic_task3 = false;
 	}
 
-	/* SERIAL DATA FROM BT */
+	/* SERIAL DATA FROM BT EVENT */
 	if (Serial.available() > 0) {
 		digitalWrite(pinLED1, HIGH);
 		/******************************
@@ -323,6 +356,7 @@ void loop(void){
 
 // Funcion para la deteccion del pulsador del encoder (Interrupcion)
 void ISR_BUTT_PRESSED(){
+
 	flag_butt_pressed = true;
 }
 
@@ -360,8 +394,6 @@ void ISR_TIMER_EXPIRED(){
 }
 
 
-
-
 /************************************************
  *  		EXTRA
  ***********************************************/
@@ -388,21 +420,65 @@ void eeprom_write(){
 			case 2:
 				if (currMenu == &CONF){
 					value_mode = currMenu -> item[i].tmp_value;
-				}
-				else if (currMenu == &VIS){
+				} 
+			break;
+
+			case 3:
+				if (currMenu == &VIS){
 					value_bujia = currMenu -> item[i].tmp_value;
 				}
-			break;
 		}
 		currMenu -> item[i].curr_value = currMenu -> item[i].tmp_value;
 	}
 }
 
+// Setea la bandera para grabar en la SD
 void setFlagRecordingSD(){
+
 	recordingSD = 1;
 }
 
+// Setea la bandera dejar de grabar en la SD
 void clearFlagRecordingSD(){
 	recordingSD = 0;
 	blinkREC(true);
+}
+
+// Chequea la cantidad de digitos del valor x
+uint8_t checknDigits(uint16_t x){
+    int8_t i = 8;    
+    uint16_t aux;
+    while ( i >= 0){
+    	aux = x / pow_10_lut[i];
+        if ( aux > 0  &&  aux < 10 ){
+            return (i + 1);
+        }
+        i --;
+    }
+    return 0;
+}
+
+// Chequea el valor del digito 'dig' en x
+uint8_t getDigitValue(uint16_t x, uint8_t dig){
+
+	return ((x / pow_10_lut[dig])  % 10);
+}
+
+// Modifica el valor del digito 'dig' a 'digitValue' de x
+uint16_t modValueDigit(uint16_t x, uint8_t dig, uint8_t digitValue){
+	x = x - getDigitValue(x, dig)*pow_10_lut[dig];
+	x = x + digitValue*pow_10_lut[dig];
+
+	return x;
+}
+
+// Determina el valor maximo del digito mas significativo basado en el valor actual 
+// de los demas digitos y el valor maximo permitido
+uint8_t getLastDigitMax(uint16_t max, uint16_t x, uint8_t numdig){
+	uint16_t aux;
+
+	x = x - getDigitValue(x, numdig-1)*pow_10_lut[numdig-1];
+	aux = max - x;
+	
+	return  (getDigitValue(aux,numdig-1) + 1);
 }

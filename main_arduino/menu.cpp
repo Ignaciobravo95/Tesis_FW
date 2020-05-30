@@ -185,13 +185,22 @@ void menu_visualizacion_fields(uint16_t x,uint16_t y,uint16_t z){
         tft.setTextColor(WHITE); 
         tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,1);
     }
+
     /* BUJIA */
+    String str = String(y);
+	while (str.length() < 2){
+		str = '0' + str;
+	}
     tft.setTextColor(WHITE);
-	tft.setTextSize(2);tft.setCursor(280,142); tft.print(y);
+	tft.setTextSize(2);tft.setCursor(280,142); tft.print(str);
 
 	/* TH */
+	str = String(z);
+	while (str.length() < 2){
+		str = '0' + str;
+	}
 	tft.setTextColor(WHITE);
-	tft.setTextSize(2);tft.setCursor(270,162); tft.print(z);	
+	tft.setTextSize(2);tft.setCursor(270,162); tft.print(str);	
 }
 
 void menu_visualizacion_signal(uint8_t x, uint8_t reset){
@@ -231,13 +240,24 @@ void menu_visualizacion_signal(uint8_t x, uint8_t reset){
 }
 
 void menu_configuracion_fields(uint16_t x,uint16_t y,uint16_t z){
+	String str1 = String(x);
+	String str2 = String(y);
+
+	while (str1.length() < 2){
+ 		str1 = '0' + str1;
+ 	}
+
+ 	while (str2.length() < 2){
+ 		str2 = '0' + str2;
+ 	}
+
 	/* UMBRAL */
 	tft.setTextColor(WHITE); 
-    tft.setTextSize(4);tft.setCursor(170,35); tft.print(x);
+    tft.setTextSize(4);tft.setCursor(170,35); tft.print(str1);
 
     /* FREC */
     tft.setTextColor(WHITE);
-	tft.setTextSize(4);tft.setCursor(170,85); tft.print(y);
+	tft.setTextSize(4);tft.setCursor(170,85); tft.print(str2);
 
 	/* MODO */
 	tft.setTextColor(WHITE);
@@ -252,9 +272,13 @@ void menu_configuracion_fields(uint16_t x,uint16_t y,uint16_t z){
 
 void menu_pacientes_fields(uint16_t x,uint16_t y,uint16_t z){
 	/* UMBRAL */
+	String str = String(x);
+ 	while (str.length() < 5){
+ 		str = '0' + str;
+ 	}
 	tft.setTextSize(4); 
 	tft.setTextColor(WHITE);  
-	tft.setCursor(92,  125); tft.print(x);
+	tft.setCursor(92,  125); tft.print(str);
 }
 
 /* STATUS */
@@ -307,52 +331,78 @@ void blinkREC(uint8_t force){
 	on = ~on;
 }
 
-void blinkBUJIA(uint16_t x,uint8_t force){
+void blinkBUJIA(uint16_t x,uint8_t force, uint8_t dig){
 	static uint8_t on = false;
+
+	String str = String(x);
+
+	while (str.length() < 2){
+		str = '0' + str;
+	}
+
 	if (on || force){
-		tft.setCursor(280,142);tft.setTextColor(WHITE);tft.setTextSize(2); tft.print(x);
+		tft.setCursor(280,142);tft.setTextColor(WHITE);tft.setTextSize(2); tft.print(str);
 	}
 	else{
-		tft.fillRect(280,142,310,20,BLACK);
+		tft.fillRect(280+((1-dig)*12),142,12,14,BLACK);
 	}
 	on = ~on;
 }
 
-void blinkIDPACIENTE(uint16_t x,uint8_t force){
+void blinkIDPACIENTE(uint16_t x,uint8_t force, uint8_t dig){
 	static uint8_t on = false;
 
+	String str = String(x);
+ 	while (str.length() < 5){
+ 		str = '0' + str;
+ 	}
+
+
 	if (on || force){
-		tft.setTextSize(4);tft.setTextColor(WHITE);tft.setCursor(92,  125); tft.print(x);
+		tft.setTextSize(4);tft.setTextColor(WHITE);tft.setCursor(92,  125); tft.print(str);
 	}
 	else{
-		tft.fillRect(92,125,150,35,BLACK);
+		tft.fillRect(92+((4-dig)*24), 125, 24, 28, BLACK);
+		// custom font has textSize*(6*7) size
 	}
 	on = !on;	
 }
 
-void blinkTH(uint16_t x,uint8_t force){
+void blinkTH(uint16_t x,uint8_t force, uint8_t dig){
 	static uint8_t on = false;
+
+	String str = String(x);
+ 	while (str.length() < 2){
+ 		str = '0' + str;
+ 	}
+
 	if (on || force){
-		tft.setTextColor(WHITE);tft.setTextSize(4);tft.setCursor(170,35); tft.print(x);
+		tft.setTextColor(WHITE);tft.setTextSize(4);tft.setCursor(170,35); tft.print(str);
 	}
 	else{
-		tft.fillRect(170,35,70,35,BLACK);
+		tft.fillRect(170+((1-dig)*24),35,24,28,BLACK);
 	}
 	on = !on;	
 }
 
-void blinkFREQ(uint16_t x,uint8_t force){
+void blinkFREQ(uint16_t x,uint8_t force, uint8_t dig){
 	static uint8_t on = false;
+
+	String str = String(x);
+ 	while (str.length() < 2){
+ 		str = '0' + str;
+ 	}
+
 	if (on || force){
-		tft.setTextColor(WHITE);tft.setTextSize(4);tft.setCursor(170,85); tft.print(x);
+		tft.setTextColor(WHITE);tft.setTextSize(4);tft.setCursor(170,85); tft.print(str);
 	}
 	else{
-		tft.fillRect(170,85,70,35,BLACK);
+		tft.fillRect(170+((1-dig)*24),85,24,28,BLACK);
 	}
 	on = !on;	
 }
 
-void blinkMODO(uint16_t x,uint8_t force){
+void blinkMODO(uint16_t x,uint8_t force, uint8_t dig){
 	static uint8_t on = false;
 	if (on || force){
 		tft.setTextColor(WHITE);tft.setTextSize(2);

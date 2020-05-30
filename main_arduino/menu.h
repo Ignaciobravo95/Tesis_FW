@@ -39,7 +39,7 @@ typedef struct menu_item{
 	uint16_t value_limit = 0;
 	uint16_t tmp_value = 0;
 	uint16_t curr_value = 0;
-	void (*blinking_function)(uint16_t x, uint8_t force) = NULL;
+	void (*blinking_function)(uint16_t x, uint8_t force, uint8_t dig) = NULL;
 	void (*doAction)() = NULL;
 	void *nextMenu = NULL;
 }menuItem_t;
@@ -248,7 +248,7 @@ void blinkREC(uint8_t force);
  * @param <refresh> <Refresca la pantalla>
  *
  */
-void blinkBUJIA(uint16_t x, uint8_t force);
+void blinkBUJIA(uint16_t x, uint8_t force, uint8_t dig);
 
 /**
  * @brief <Imprime el menu principal en el display>
@@ -258,7 +258,7 @@ void blinkBUJIA(uint16_t x, uint8_t force);
  * @param <refresh> <Refresca la pantalla>
  *
  */
-void blinkIDPACIENTE(uint16_t x, uint8_t force);
+void blinkIDPACIENTE(uint16_t x, uint8_t force, uint8_t dig);
 
 /**
  * @brief <Imprime el menu principal en el display>
@@ -268,7 +268,7 @@ void blinkIDPACIENTE(uint16_t x, uint8_t force);
  * @param <refresh> <Refresca la pantalla>
  *
  */
-void blinkTH(uint16_t x, uint8_t force);
+void blinkTH(uint16_t x, uint8_t force, uint8_t dig);
 
 /**
  * @brief <Imprime el menu principal en el display>
@@ -278,7 +278,7 @@ void blinkTH(uint16_t x, uint8_t force);
  * @param <refresh> <Refresca la pantalla>
  *
  */
-void blinkFREQ(uint16_t x, uint8_t force);
+void blinkFREQ(uint16_t x, uint8_t force, uint8_t dig);
 
 /**
  * @brief <Imprime el menu principal en el display>
@@ -288,6 +288,6 @@ void blinkFREQ(uint16_t x, uint8_t force);
  * @param <refresh> <Refresca la pantalla>
  *
  */
-void blinkMODO(uint16_t x, uint8_t force);
+void blinkMODO(uint16_t x, uint8_t force, uint8_t dig);
 
 #endif
