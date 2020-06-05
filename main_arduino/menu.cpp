@@ -175,7 +175,7 @@ void menu_pacientes_option(uint8_t i){
 
 /* FIELD */
 void menu_visualizacion_fields(uint16_t x,uint16_t y,uint16_t z){
-	float presion = x * 99.9 / 255.0 ;
+	float presion = x * 99.9 / 65535.0 ;
 
 	/* LECTURA */
 	if(x > 180){
@@ -203,13 +203,13 @@ void menu_visualizacion_fields(uint16_t x,uint16_t y,uint16_t z){
 	tft.setTextSize(2);tft.setCursor(270,162); tft.print(str);	
 }
 
-void menu_visualizacion_signal(uint8_t x, uint8_t reset){
-	static uint8_t sample_number = 5, last_value = 189;
-	uint8_t ordenada;
-	float presion = x * 99.9 / 255.0 ;
+void menu_visualizacion_signal(uint16_t x, uint8_t reset){
+	static uint8_t sample_number = 5, last_value = 188;
+	uint8_t new_value;
+	float presion = x * 99.9 / 65535.0 ;
 
 	/* LECTURA NUMBER */
-	tft.fillRect(195,76,80,35,BLACK);
+	tft.fillRect(195,76,96,35,BLACK);
 
 	if (!reset){
 		if(x > 180){
@@ -226,17 +226,15 @@ void menu_visualizacion_signal(uint8_t x, uint8_t reset){
 			tft.fillRect(6, 19, 178, 170, BLACK);
 		}
 
-		ordenada = map(x , 0 ,255, 189, 18);
-		//tft.drawPixel(sample_number, ordenada, WHITE);
-		tft.drawLine(sample_number-1, last_value, sample_number, ordenada, WHITE);
+		new_value = map(x , 0 ,65536, 188, 18);
+		tft.drawPixel(sample_number, new_value, WHITE);
+		tft.drawLine(sample_number-1, last_value, sample_number, new_value, WHITE);
+
+		last_value = new_value;
     }
     else{
     	sample_number = 5;
     }
-    /* LECTURA BARRA  */    
-    // limpio barra
-    // valor barra abcisa = x * factor 
-    // print barra (valor)
 }
 
 void menu_configuracion_fields(uint16_t x,uint16_t y,uint16_t z){

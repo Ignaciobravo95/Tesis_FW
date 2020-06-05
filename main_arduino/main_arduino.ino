@@ -2,6 +2,7 @@
  *  		   INCLUDES SECTION
  ***********************************************/
 #include "menu.h"
+#include "com_bt.h"
 #include <math.h>
 #include <TimerOne.h>
 
@@ -12,9 +13,10 @@
 #define pinDT  	3  // DT  del encoder
 #define pinCLK  12  // DT  del encoder
 #define pinLED1 13 // CPU state
-#define TIMER0_PERIOD		  	1000	 /* us */	
-#define PERIODIC_TASK1_PERIOD 	10000000 /*  = 10s*/
-#define PERIODIC_TASK2_PERIOD 	100000   /*  = 0.1S */
+#define TIMER0_PERIOD		  	1000	 	/*  = 1ms */	
+#define PERIODIC_TASK1_PERIOD 	5000000 	/*  = 10s	Check battery and bt	*/
+#define PERIODIC_TASK2_PERIOD 	250000   	/*  = .25s 	Blinking items 			*/
+#define PERIODIC_TASK3_PERIOD 	15000000   	/*  = 15s 	Writes items 			*/
 
 /************************************************
  *   		FUNCTIONS DECLARATION
@@ -47,6 +49,7 @@ volatile bool up = false;
 volatile bool flag_periodic_task1 = false;
 volatile bool flag_periodic_task2 = false;
 volatile bool flag_periodic_task3 = false;
+volatile bool flag_timer0		  = false;
 
 /* AUX VARIABLES */
 volatile uint8_t lastEncoderState = 0;
@@ -85,20 +88,13 @@ void setup(void){
 	Timer1.initialize(TIMER0_PERIOD); /* Value in microseconds? */
 
 	/* TIMER TASK CALC */
-	task3_count_value = (1000000/ value_frec) / TIMER0_PERIOD; 	
+	task3_count_value = PERIODIC_TASK3_PERIOD / TIMER0_PERIOD; 	
 	task2_count_value = PERIODIC_TASK2_PERIOD / TIMER0_PERIOD;
 	task1_count_value = PERIODIC_TASK1_PERIOD / TIMER0_PERIOD;
-
   	
 	/* INIT SERIAL COMMUNICATIONS */
 	Serial.begin(9600);
-	Serial.println("Starting system.");
-	Serial.print("count1 : ");
-	Serial.println(task1_count_value);
-	Serial.print("count2 : ");
-	Serial.println(task2_count_value);
-	Serial.print("count3 : ");
-	Serial.println(task3_count_value);
+	//Serial.println("Starting system...");
 
   	/* GPIO INIT */
 	pinMode(pinSW	,INPUT);
@@ -115,7 +111,7 @@ void setup(void){
 	/* INITIALIZE MENU */
 	PPAL.display_header   	= &menu_principal_header;
 	PPAL.display_option   	= &menu_principal_option;
-	PPAL.item[0].nextMenu 	= &VIS;
+	PPAL.item[0].nextMenu 	= &VIS;		// CREA UN BOTON QUE CUANDO LO APRETE PASE A VISUALIZACION
 	PPAL.item[1].nextMenu 	= &PAC;
 	PPAL.item[2].nextMenu 	= &CONF;
 	PPAL.items_number		= 3;
@@ -178,14 +174,13 @@ void setup(void){
 	currMenu->display_header();
 	currMenu->display_option(0);
 	upperlimit = currMenu->items_number;
-
+	
 	batteryStatus(0);
 	bluetoothStatus(0);	
 }
 
 void loop(void){
-	uint8_t i = 0;									// extra 
-
+	uint8_t i = 0;
 	
 	/* Main LOOP */
 	/* BUTTON PRESSED EVENT */
@@ -253,7 +248,7 @@ void loop(void){
 			}			
 		}		
 		/******************************/
-		Serial.println("button_pressed");
+		//Serial.println("EVENT: button_pressed");
 		flag_butt_pressed = false;
 	}
 
@@ -265,7 +260,7 @@ void loop(void){
 		CHANGE SELECTED FIELD VALUE
 		******************************/
 		if (up){
-        encoder_count = (encoder_count + 1) % upperlimit;
+        encoder_count = (encoder_count + 1) % upperlimit; // 0 - (upperlimit - 1)
 	    }
 	    else{
 	        if (encoder_count == 0) encoder_count = upperlimit - 1;
@@ -280,22 +275,23 @@ void loop(void){
 			currItem -> tmp_value = modValueDigit(currItem -> tmp_value, digit, encoder_count);				
 		}
 		/******************************/
-		Serial.println("encoder_rotated");
+		//Serial.println("EVENT: encoder_rotated");
 		flag_encoder = false;
 	}
 
 	/* PERIODIC TASK 1 EVENT */
-	if ((flag_periodic_task1) && (!flag_periodic_task2) && (!flag_periodic_task3) ){
+	if ((flag_periodic_task1) && (!flag_periodic_task2) && (!flag_periodic_task3)){
 		digitalWrite(pinLED1, HIGH);
 		/******************************
 		- CHECK PERIODIC TASK W/LESS PRIORITY:
 			- BATTERY VOLTAGE  
 			- BLUETOOTH STATUS 
 		******************************/
+		checkBTstatus(); 
 		batteryStatus(0);
 		bluetoothStatus(0);
 		/******************************/
-		Serial.println("UNO 1.");
+		//Serial.println("EVENT: PERIODIC TASK 1.");
 		flag_periodic_task1 = false;
 	}
 
@@ -308,7 +304,7 @@ void loop(void){
 		if (currItem -> blinking) currItem -> blinking_function(currItem->tmp_value, false, digit);
 		if (recordingSD) blinkREC(false);
 		/******************************/
-		Serial.println("DOS 2.");
+		//Serial.println("EVENT: PERIODIC TASK 2.");
 		flag_periodic_task2 = false;
 	}
 
@@ -319,34 +315,39 @@ void loop(void){
 		- WRITES DATA IN SD CARD
 		******************************/	
 		if (recordingSD){
-			Serial.print("RECORDING DATA TO SD. ");
+			//Serial.print("RECORDING DATA TO SD. ");
 		}
 		/******************************/	
-		Serial.println("TRES 3.");
+		//Serial.println("EVENT: PERIODIC TASK 3.");
 		flag_periodic_task3 = false;
 	}
 
 	/* SERIAL DATA FROM BT EVENT */
-	if (Serial.available() > 0) {
-		digitalWrite(pinLED1, HIGH);
+	if (Serial.available() > 0){
+	 	digitalWrite(pinLED1, HIGH);
 		/******************************
-		- PARSE DATA RECEIVED FROM
+		- PROCCESS RECEIVED DATA FROM
 		END DEVICE.
-			- BATTERY LEVEL 
-			- PRESSURE LEVEL
-		******************************/	
-		if (currMenu == &VIS){
-			uint8_t ucData =  Serial.read();
-			menu_visualizacion_signal(ucData, false);
-		}	
+		******************************/
+		rxUartStateMachine(Serial.read());
 		/******************************/
 	}
 
+	/* EVALUATE TX UART STATE MACHINE EVERY TIMER0 PERIOD */
+	if (flag_timer0){
+		/******************************
+		- CHECKS IF THERE'S A REQUEST TO SEND DATA
+		AND CHECKS IF THE TIMEOUT EXPIRED
+		******************************/
+		txUartStateMachine();
+		/******************************/
+		flag_timer0 = false;
+	}
 
 	digitalWrite(pinLED1, LOW);
 
 	/* SEND TO SLEEP */
-}				
+}					
 
 
 /************************************************
@@ -379,7 +380,6 @@ void ISR_A_CHANGE(){
     flag_encoder = true;
 }
 
-// Funcion del overflow del temporizador, every 1ms (Interrupcion)
 void ISR_TIMER_EXPIRED(){
 	count++;
 	if (count % task1_count_value == 0){
@@ -391,6 +391,7 @@ void ISR_TIMER_EXPIRED(){
 	if (count % task3_count_value == 0){
 		flag_periodic_task3 = true;
 	}
+	flag_timer0 = true;
 }
 
 
@@ -413,7 +414,6 @@ void eeprom_write(){
 			case 1:
 				if (currMenu == &CONF){
 					value_frec = currMenu -> item[i].tmp_value;
-					task3_count_value = (1000000/ value_frec) / TIMER0_PERIOD; 	
 				}
 			break;
 

@@ -178,7 +178,7 @@ void menu_visualizacion_fields(uint16_t x,uint16_t y,uint16_t z);
  * @param <refresh> <Refresca la pantalla>
  *
  */
-void menu_visualizacion_signal(uint8_t x, uint8_t reset);
+void menu_visualizacion_signal(uint16_t x, uint8_t reset);
 
 /**
  * @brief <Imprime el menu principal en el display>

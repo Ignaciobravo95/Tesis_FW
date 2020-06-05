@@ -14,14 +14,9 @@ uint8_t frame_tx[MAX_FRAME_SIZE] = {0};
 uint8_t frame_rx[MAX_FRAME_SIZE] = {0};
 uint8_t waiting_ans	= false;
 
-AdcDataType adcbuffer[BUFFER_SIZE];
-uint8_t tail = 0;
-uint8_t head = 0;
+AdcDataType adc_value = 33222;
 
-uint8_t frec, mode;
-
-
-uint32_t timeout = TIMEOUT_MS; uint32_t NERRORES = 0;
+uint32_t timeout = TIMEOUT_MS;	uint32_t NERRORES = 0;
 /************************************************
  *   		PRIVATE FUNCTION DEFINITION
  ***********************************************/
@@ -41,38 +36,10 @@ e_UartCmdId popCMD(){
 	return aux;
 }
 
-void pushADC(AdcDataType *ptr){
-	uint8_t i;
-	adcbuffer[head++] = ( *ptr & 0x00FFFFFF );
-	head = head % BUFFER_SIZE;
-}
-
 e_UartErrors processFrame(){
-	uint8_t l = 0, i = 0;
- 	uint8_t adcvalue[3] = {0,0,0};
-
  	if (waiting_ans){
  		waiting_ans	= false;
-		switch ( uartSM.currUartCMD ) {	/* Check last CMD sent */  
-			case GET_CONFIG:
-				/* ESPERO SEND CONFIG */
-				if (frame_rx[CMDID] == SEND_CONFIG){
-			    	if (frame_rx[LENGTH] == 2){ // length 2 
-			    		frec = frame_rx[DATA0];
-			    		mode = frame_rx[DATA1];
-			    		pushCMD(SEND_CONFIG);
-			    		pushCMD(SEND_ACK);
-			    		return NO_ERROR;
-			    	}
-			    	else{
-			    		return WRONG_ANSWER;
-			    	}
-			    }
-			    else{
-			    	return WRONG_ANSWER;
-			    }	
-			break;   
-
+		switch ( uartSM.currUartCMD ) {	 	/* Check last CMD sent */  
 		    case SEND_CONFIG:
 		    	/* ESPERO ACK*/
 		    	if (frame_rx[CMDID] == SEND_ACK){
@@ -95,38 +62,59 @@ e_UartErrors processFrame(){
 			    }
 		    break;
 
+		    case SEND_ADC_MEASURE:
+		    	/* ESPERO ACK*/
+		    	if (frame_rx[CMDID] == SEND_ACK){
+			    	if (frame_rx[LENGTH] == 1){ // length 2 
+			    		if (frame_rx[DATA0] == ACKNOWLODGE_BYTE)
+			    		{
+			    			return NO_ERROR;
+			    		}
+			    		else
+			    		{
+			    			return WRONG_ACK;
+			    		}
+			    	}
+			    	else{
+			    		return WRONG_ANSWER;
+			    	}
+			    }
+			    else{
+			    	return WRONG_ANSWER;
+			    }
+			break;
+
 		    default:
-		    	return WRONG_ANSWER;
 		    break;
 		}
  	}
- 	else{ 
-		switch ( frame_rx[CMDID] ){
-			case SEND_ADC_MEASURE:
-	 			l = frame_rx[LENGTH];
+ 	else{
+ 		switch ( frame_rx[CMDID] ){
+ 			case GET_CONFIG:
+ 				if (frame_rx[LENGTH] == 0){
+ 					pushCMD(SEND_CONFIG);
+ 				}
+ 				else{
+ 					return WRONG_DATA;
+ 				}
+ 			break;
 
-	 			if (sizeof(AdcDataType) >=3){
-	 				if (l != 3)
-	 					return WRONG_DATA;          			
-            	}
-            	else if (sizeof(AdcDataType) == 2){
-            		if (l == 2)
-	 					return WRONG_DATA;          			
-            	}
- 			
-				for(i = DATA0; i < DATA0+l ; i++){
-					adcvalue[i-DATA0] = frame_rx[i];
-				}
-				pushADC((AdcDataType *)adcvalue);
-				pushCMD(SEND_ACK);				
-				return NO_ERROR;
-	 		break;
+ 			case SEND_CONFIG:
+ 				if (frame_rx[LENGTH] == 2){
+ 					value_frec = frame_rx[DATA0];
+ 					value_mode = frame_rx[DATA1];
+ 					pushCMD(SEND_ACK);
+ 				}
+ 				else{
+ 					return WRONG_DATA;
+ 				}
+ 			break;
 
-	 		default:
-	 			return WRONG_DATA;
-	 		break;
-		}
- 	}
+ 			default:
+ 				return WRONG_DATA;
+			break;
+ 		}
+	}
 }
 
 void reset_state_machine(){
@@ -138,8 +126,8 @@ void reset_state_machine(){
 /************************************************
  *   		FUNCTIONS DEFINITION
  ***********************************************/
-void checkBTstatus(){
-	pushCMD(GET_CONFIG);
+void sendADCValue(){
+	pushCMD(SEND_ADC_MEASURE);
 }
 
 void txUartStateMachine(){
@@ -156,19 +144,11 @@ void txUartStateMachine(){
 		}
 	}
 
+
 	switch ( uartSM.currUartSTATE ){
 	    case IDLE:
-			uartSM.currUartCMD = popCMD();		// POP FIRS IN THE LIST
+	    	uartSM.currUartCMD = popCMD();		// POP FIRS IN THE LIST
 	      	switch ( uartSM.currUartCMD ){
-	        	case GET_CONFIG:
-	          		frame_tx[START] 	= START_BYTE; 	// START BYTE
-	          		frame_tx[LENGTH] 	= 0;			// LENGTH PAYLOAD - NO DATA SENT
-	          		frame_tx[CMDID] 	= GET_CONFIG;  	// COMAND ID
-	          		frame_tx[CMDID+1] 	= STOP_BYTE;	// STOP BYTE
-
-	          		uartSM.currUartSTATE = SENDING_PACKET; 
-	         	break;
-	          
 	          	case SEND_CONFIG:
 	           		frame_tx[START] 	= START_BYTE; 	// START BYTE
 	          		frame_tx[LENGTH] 	= 2;			// LENGTH PAYLOAD - FREC + MODE
@@ -177,9 +157,29 @@ void txUartStateMachine(){
 	          		frame_tx[DATA1] 	= value_mode;	//
 	          		frame_tx[DATA1+1]	= STOP_BYTE;	// STOP BYTE
 
-	          		uartSM.currUartSTATE = SENDING_PACKET;		
+	          		uartSM.currUartSTATE = SENDING_PACKET; 
 	            break;
 	          	
+	          	case SEND_ADC_MEASURE:
+	            	frame_tx[START] 	= START_BYTE; 	// START BYTE
+	            	frame_tx[CMDID] 	= SEND_ADC_MEASURE;  // COMAND ID
+	            	if (sizeof(AdcDataType) >=3){
+	            		frame_tx[LENGTH] 	= 3;			// LENGTH PAYLOAD - 24 BITS ADC
+	            		frame_tx[DATA0] 	= adc_value 	   	& 0x000000FF;
+	          			frame_tx[DATA1] 	= (adc_value >> 8)  & 0x000000FF;
+	          			frame_tx[DATA2] 	= (adc_value >> 16) & 0x000000FF;
+	          			frame_tx[DATA2+1]	= STOP_BYTE;		
+	            	}
+	            	else if (sizeof(AdcDataType) == 2){
+	            		frame_tx[LENGTH] 	= 2;			// LENGTH PAYLOAD - 16 BITS ADC
+	            		frame_tx[DATA0] 	= adc_value 	   	& 0x00FF;
+	          			frame_tx[DATA1] 	= (adc_value >> 8)  & 0x00FF;
+	          			frame_tx[DATA1+1]	= STOP_BYTE;		
+	            	}	          		
+
+	            	uartSM.currUartSTATE = SENDING_PACKET; 
+	            break;
+
 	          	case SEND_ACK:
 	          		frame_tx[START] 	= START_BYTE; 	// START BYTE
 	          		frame_tx[LENGTH] 	= 1;			// LENGTH PAYLOAD - NO DATA SENT
@@ -187,11 +187,10 @@ void txUartStateMachine(){
 	          		frame_tx[DATA0]		= ACKNOWLODGE_BYTE;
 	          		frame_tx[DATA0+1]	= STOP_BYTE;	// STOP BYTE
 
-	          		uartSM.currUartSTATE = SENDING_PACKET; 	
+	          		uartSM.currUartSTATE = SENDING_PACKET;
 	            break;
 
-	          	default: 
-	          		// error me estas pidiendo que mande algo que no se como mandarlo 
+	          	default:  
 	          	break;
 			}
 	    break;
@@ -206,12 +205,12 @@ void txUartStateMachine(){
 	    	else{
 	    		waiting_ans = true;
 	    		uartSM.currUartSTATE = IDLE_WAITING;
-	    	}	
+	    	}	 		
 	    break;
 	    
 	    case PROCESSING_PACKET:
 	    	error = processFrame();
-			if (error != NO_ERROR) NERRORES++;
+	    	if (error != NO_ERROR) NERRORES++;
 			uartSM.currUartSTATE = IDLE;	
 	    break;
 
@@ -222,7 +221,7 @@ void txUartStateMachine(){
 
 void rxUartStateMachine(uint8_t ucReceived){
 	static uint8_t nByte = 0;
-		
+	
 	switch( uartSM.currUartSTATE ){
 		case IDLE:
 		case IDLE_WAITING:
@@ -250,3 +249,52 @@ void rxUartStateMachine(uint8_t ucReceived){
 		break;
 	}
 }
+
+/*
+
+FIRMWARE:
+
+- LIBRERIA PARA LA TARJETA SD:
+			- RECIBIR UN BUFFER , FORMATEARLO Y ESCUPIRLO EN UN TXT. --------> IVAN
+
+- LIBRERIA PARA LA EEPROM:
+			- RECIBIR DATOS, LO ESCRIBE EN EPPROM.				     --------> NACHO		
+			- RECUPERA DATOS DE LA EEPROM.
+
+- DEFINIR QUE HACEMOS CON LOS ERRORES DEL COM BT Y LOS DATOS.		
+
+- LECTURA DE LA BATERIA:
+			- LEE EL VOLTAJE C/ X TIEMPO.
+
+HARDWARE:
+
+- DEFINIR CIRCUITO CARGA BATERIA:
+			- SE HACE EN PLACA SEPARADA?							-----------> EZE
+			- SE PUEDE CARGAR MIENTRAS SE USA?
+
+- DEFINIR COMO MEDIMOS LA BATERIA:
+			- VER EL CIRCUITO , SWITCH C/ X TIEMPO.					-----------> EZE
+
+- TODO:
+
+	- COMPARTIR REPO CON EL EZE
+	- SUBO AL REPO EL PROGRAMA CON EL BT.
+	- SUBO AL DRIVE LOS ALTIUM Y LOS PROTEUS
+
+*/
+
+
+/*
+
+- BATERIA (2.8V hasta 4.2V ) -> PROTECCION (SUBVOLTAJE, CORTO) -> CARGADOR -> CARGADOR
+															   -> STEP UP 5V - >LOAD ( ARDUINOS )  
+
+CIRCUITO STEP UP
+- TENSION :   STEP  OUT = 5V - IN = 2.8 A 4.2V
+- CORRIENTE : MAX(CIRCUITO BASE) BT + ENC + PANTALLA + SD + PASIVOS + MICRO
+
+
+OPCION A) PLACA GREY SCOTT . YA TIENE STEP UP PROTECCION Y CARGADOR
+OPCION B) COMPRAR PLACA CARGADOR Y COMPRAR PLACA STEP UP Y UNIRLOS
+
+*/

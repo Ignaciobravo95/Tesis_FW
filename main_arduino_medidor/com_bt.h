@@ -6,12 +6,11 @@
  ***********************************************/
 #include <Stdint.h>				
 #include <Arduino.h>
-#include <avr/pgmspace.h>
 #include "HardwareSerial.h"
 /************************************************
  *   		DEFINES SECTION
  ***********************************************/
-#define AdcDataType			uint32_t // 24 bit - 16bit
+#define AdcDataType			uint32_t
 #define BUFFER_SIZE			10
 
 #define START_BYTE 			0xAA
@@ -25,11 +24,11 @@
  *  		TYPEDEF SECTION
  ***********************************************/
 typedef enum e_indexFRAME{
-	START,	
-	LENGTH,	
-	CMDID,	
-	DATA0,	
-	DATA1,	
+	START,
+	LENGTH,
+	CMDID,
+	DATA0,
+	DATA1,
 	DATA2,
 }e_indexFRAME;
 
@@ -42,7 +41,7 @@ typedef enum e_UartErrors{
 }e_UartErrors;
 
 typedef enum e_UartCmdId{
-	NO_CMD,		
+	NO_CMD,
 	GET_CONFIG,			// pido dato 	espero rta de tipo send_config
 	SEND_CONFIG,		// envio dato 	espero rta de tipo ack
 	SEND_ACK,			// envio 		no espero rta
@@ -99,7 +98,17 @@ void rxUartStateMachine(uint8_t ucReceivedByte);
  */
 void txUartStateMachine();
 
-void checkBTstatus();
+/**
+ * @brief This function runs the state machine.
+ *
+ * @param <Add InputName> <add description here>
+ * @param <Add InputName> <add description here>
+ * @param <Add InputName> <add description here>
+ * @param <Add InputName> <add description here>
+ *
+ * @return <Add Return Informaiton here>
+ */
+void sendADCValue();
 
 #endif
 
@@ -114,8 +123,7 @@ void checkBTstatus();
 // AT+ORGL : Restore factory settings
 // AT+PSWD: see default password
 
-/*
-	1  	    1	   1 		LNGT        1      
-[ START |LGTH | CMD_ID  | DATA(LGTH) | STOP ]
-			
-*/
+
+/*	1  	    1	   1 		LNGT        1      
+ [ START |LGTH | CMD_ID  | DATA(LGTH) | STOP ]
+ */
