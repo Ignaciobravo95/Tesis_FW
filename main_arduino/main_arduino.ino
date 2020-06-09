@@ -3,6 +3,7 @@
  ***********************************************/
 #include "menu.h"
 #include "com_bt.h"
+#include "eepromlib.h"
 #include <math.h>
 #include <TimerOne.h>
 
@@ -58,12 +59,6 @@ uint32_t task3_count_value = 0, task2_count_value = 0, task1_count_value = 0;
 uint16_t upperlimit = 0;
 uint8_t recordingSD = 0;
 
-/* GLOBAL SCOPE? */
-uint8_t index = 0;  							// selected item number 
-uint8_t digit = 0, nDigit = 1;					// digit being edited and number of digits
-uint16_t encoder_count = 0, encoder_mode = 0;  	// encoder mode - 0 switch items - 1 modifie value
-
-
 /* MENU ITEMS */
 menu_t PPAL, VIS, PAC, CONF;
 menu_t *currMenu;
@@ -78,11 +73,11 @@ uint8_t  value_mode = 0;			/* DR: 0 - 1 */
 
 void setup(void){
 	/* READ CONFIG FROM EEPROM */
-	value_bujia = 8;
-	value_th = 99;
-	value_frec = 1;
-	value_mode = 0;
-	value_paciente = 33223;
+	value_bujia = getEEPROM_bujia();
+	value_th = getEEPROM_th();
+	value_frec = getEEPROM_frec();
+	value_mode = getEEPROM_mode();
+	value_paciente = getEEPROM_id();
 
 	/* TIMER INIT */
 	Timer1.initialize(TIMER0_PERIOD); /* Value in microseconds? */
@@ -180,7 +175,12 @@ void setup(void){
 }
 
 void loop(void){
-	uint8_t i = 0;
+	uint8_t i = 0;						// var used to iterate trough arrays
+	static uint8_t index = 0;			// selected item number 
+	static uint8_t digit = 0; 			// digit being edited
+	static uint8_t nDigit = 1;			// Number of digits 
+	static uint16_t encoder_count = 0;	// Rotative encoder counter to switch between items or edit values
+	static uint16_t encoder_mode = 0;  	// Encoder mode - 0 switch items - 1 modifie value
 	
 	/* Main LOOP */
 	/* BUTTON PRESSED EVENT */
@@ -405,27 +405,34 @@ void eeprom_write(){
 	for ( i = 0; i < imax; i++ ){
 		switch (i){
 			case 0:
-				if (currMenu == &PAC)
+				if (currMenu == &PAC){
 					value_paciente = currMenu -> item[i].tmp_value;
-				else if (currMenu == &CONF)
+					writeEEPROM_id(value_paciente);
+				}
+				else if (currMenu == &CONF){
 					value_th = currMenu -> item[i].tmp_value;
+					writeEEPROM_th(value_th);
+				}
 			break;
 			
 			case 1:
 				if (currMenu == &CONF){
 					value_frec = currMenu -> item[i].tmp_value;
+					writeEEPROM_frec(value_frec);
 				}
 			break;
 
 			case 2:
 				if (currMenu == &CONF){
 					value_mode = currMenu -> item[i].tmp_value;
+					writeEEPROM_mode(value_mode);
 				} 
 			break;
 
 			case 3:
 				if (currMenu == &VIS){
 					value_bujia = currMenu -> item[i].tmp_value;
+					writeEEPROM_bujia(value_bujia);
 				}
 		}
 		currMenu -> item[i].curr_value = currMenu -> item[i].tmp_value;

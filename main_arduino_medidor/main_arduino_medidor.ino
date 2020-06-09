@@ -2,6 +2,7 @@
  *  		   INCLUDES SECTION
  ***********************************************/
 #include "com_bt.h"
+#include "eepromlib.h"
 #include <TimerOne.h>
 
 /************************************************
@@ -37,8 +38,8 @@ uint8_t  value_mode = 0;			/* DR: 0 - 1 */
 
 void setup(void){
 	/* READ CONFIG FROM EEPROM */
-	value_frec = 5;
-	value_mode = 0;
+	value_frec = getEEPROM_frec();
+	value_mode = getEEPROM_mode();
 
 	/* TIMER INIT */
 	Timer1.initialize(TIMER0_PERIOD); /* Value in microseconds? */
