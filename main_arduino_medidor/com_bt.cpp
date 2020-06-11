@@ -2,6 +2,7 @@
  *   		INCLUDES
  ***********************************************/
 #include "com_bt.h"
+#include "eepromlib.h"
 
 /************************************************
  *			GLOBAL VARIABLE SECTION
@@ -101,8 +102,8 @@ e_UartErrors processFrame(){
 
  			case SEND_CONFIG:
  				if (frame_rx[LENGTH] == 2){
- 					value_frec = frame_rx[DATA0];
- 					value_mode = frame_rx[DATA1];
+ 					value_frec = frame_rx[DATA0]; writeEEPROM_frec(value_frec);
+ 					value_mode = frame_rx[DATA1]; writeEEPROM_mode(value_mode);
  					pushCMD(SEND_ACK);
  				}
  				else{
@@ -257,10 +258,6 @@ FIRMWARE:
 - LIBRERIA PARA LA TARJETA SD:
 			- RECIBIR UN BUFFER , FORMATEARLO Y ESCUPIRLO EN UN TXT. --------> IVAN
 
-- LIBRERIA PARA LA EEPROM:
-			- RECIBIR DATOS, LO ESCRIBE EN EPPROM.				     --------> NACHO		
-			- RECUPERA DATOS DE LA EEPROM.
-
 - DEFINIR QUE HACEMOS CON LOS ERRORES DEL COM BT Y LOS DATOS.		
 
 - LECTURA DE LA BATERIA:
@@ -274,12 +271,6 @@ HARDWARE:
 
 - DEFINIR COMO MEDIMOS LA BATERIA:
 			- VER EL CIRCUITO , SWITCH C/ X TIEMPO.					-----------> EZE
-
-- TODO:
-
-	- COMPARTIR REPO CON EL EZE
-	- SUBO AL REPO EL PROGRAMA CON EL BT.
-	- SUBO AL DRIVE LOS ALTIUM Y LOS PROTEUS
 
 */
 

@@ -12,7 +12,7 @@
  ***********************************************/
 #define pinSW 	2  // CLK del encoder
 #define pinDT  	3  // DT  del encoder
-#define pinCLK  12  // DT  del encoder
+#define pinCLK  A5  // DT  del encoder
 #define pinLED1 13 // CPU state
 #define TIMER0_PERIOD		  	1000	 	/*  = 1ms */	
 #define PERIODIC_TASK1_PERIOD 	5000000 	/*  = 10s	Check battery and bt	*/
@@ -28,7 +28,7 @@ void setFlagRecordingSD();
 uint8_t checknDigits(uint16_t x);
 uint8_t getDigitValue(uint16_t x, uint8_t dig);
 uint16_t modValueDigit(uint16_t x, uint8_t dig, uint8_t digitValue);
-uint8_t getLastDigitMax(uint16_t max, uint16_t x, uint8_t numdig);
+uint8_t getDigitMax(uint16_t max, uint16_t x, uint8_t numdig,  uint8_t dig);
 
 /************************************************
  *   		GLOBAL DATA SECTION
@@ -73,11 +73,11 @@ uint8_t  value_mode = 0;			/* DR: 0 - 1 */
 
 void setup(void){
 	/* READ CONFIG FROM EEPROM */
-	value_bujia = getEEPROM_bujia();
-	value_th = getEEPROM_th();
-	value_frec = getEEPROM_frec();
-	value_mode = getEEPROM_mode();
-	value_paciente = getEEPROM_id();
+	value_bujia 	= getEEPROM_bujia();
+	value_th 		= getEEPROM_th();
+	value_frec 		= getEEPROM_frec();
+	value_mode 		= getEEPROM_mode();
+	value_paciente 	= getEEPROM_id();
 
 	/* TIMER INIT */
 	Timer1.initialize(TIMER0_PERIOD); /* Value in microseconds? */
@@ -223,21 +223,14 @@ void loop(void){
 				currItem -> blinking = 1;
 				nDigit = checknDigits( currItem -> value_limit - 1);     // numero de digitos		
 				encoder_count = getDigitValue(currItem -> tmp_value, 0); // valor del primer digito
-				if (digit == nDigit - 1){								 // en caso de que solo tenga 1 digito	
-					upperlimit = getLastDigitMax(currItem -> value_limit - 1, currItem ->tmp_value, nDigit);	
-				}else{
-					upperlimit = 10;
-				}
+				upperlimit = getDigitMax(currItem -> value_limit - 1, currItem ->tmp_value, nDigit, digit);	
 			}
 			/* IF IM EDITING CHECK WICH DIGIT IM EDITING */
 			else if ( currItem -> blinking == 1){
 				encoder_count = getDigitValue(currItem -> tmp_value, ++digit); 
-				/* IF LAST DIGIT, MAKE SURE DONT EXCEED UPPER LIMIT*/
-				if (digit == nDigit - 1){
-					upperlimit = getLastDigitMax(currItem -> value_limit - 1, currItem ->tmp_value, nDigit);	
-				}
-				else if (digit >= nDigit){
-					/* IF I WENT OVER ALL DIGITS, STOP EDITING */
+				upperlimit = getDigitMax(currItem -> value_limit - 1, currItem ->tmp_value, nDigit, digit);	
+				/* IF I WENT OVER ALL DIGITS, STOP EDITING */
+				if (digit >= nDigit){
 					currItem -> blinking_function(currItem -> tmp_value, true, 0);
 					digit = 0;
 					currItem -> blinking = 0;
@@ -451,7 +444,7 @@ void clearFlagRecordingSD(){
 	blinkREC(true);
 }
 
-// Chequea la cantidad de digitos del valor x
+// Chequea la cantidad de digitos del valor x (maximo 8 digitos)
 uint8_t checknDigits(uint16_t x){
     int8_t i = 8;    
     uint16_t aux;
@@ -479,13 +472,48 @@ uint16_t modValueDigit(uint16_t x, uint8_t dig, uint8_t digitValue){
 	return x;
 }
 
-// Determina el valor maximo del digito mas significativo basado en el valor actual 
+// Determina el valor maximo del digito basado en el valor actual 
 // de los demas digitos y el valor maximo permitido
-uint8_t getLastDigitMax(uint16_t max, uint16_t x, uint8_t numdig){
-	uint16_t aux;
+uint8_t getDigitMax(uint16_t max, uint16_t x, uint8_t numdig, uint8_t dig){
+	int8_t i;
+	uint16_t maxdigVal, xdigVal;
 
-	x = x - getDigitValue(x, numdig-1)*pow_10_lut[numdig-1];
-	aux = max - x;
-	
-	return  (getDigitValue(aux,numdig-1) + 1);
+	numdig = numdig - 1;
+	for (i = numdig; i >= 0; i--){
+		maxdigVal 	= getDigitValue(max, i);
+		xdigVal 	= getDigitValue(x, i);
+
+		if ( i > dig){
+			if (xdigVal < maxdigVal){
+				return 10;
+			}
+			else if (xdigVal > maxdigVal){
+				return 30; // error no deberia suceder nunca
+			}
+		}
+		else if ( i < dig){
+			if (xdigVal < maxdigVal){
+				return (getDigitValue(max, dig) + 1);
+			}
+			else if (xdigVal > maxdigVal){
+				return getDigitValue(max, dig);
+			}	
+			else{
+				if ( i == 0){
+					if (xdigVal <= maxdigVal){
+						return (getDigitValue(max, dig) + 1);
+					}
+					else if (xdigVal > maxdigVal){
+						return getDigitValue(max, dig);
+					}	
+				}
+			}
+		}
+		else{
+			if ( dig == 0 ){
+				return (getDigitValue(max, dig) + 1);
+			}
+		}
+	}
+  return 50;
 }
