@@ -245,13 +245,13 @@ void menu_pacientes_fields(){
 void menu_visualizacion_signal(uint32_t x, uint8_t reset){
 	static uint8_t sample_number = 5, last_value = 188;
 	uint8_t new_value;
-	float presion = x * 99.9 / 16777215.0 ;
+	float presion = x * 2.0 / 2000000.0 ;
 
 	/* LECTURA NUMBER */
 	tft.fillRect(195,76,96,35,BLACK);
 
 	if (!reset){
-		if(x > 180){
+		if(presion > 1.2){
 		    tft.setTextColor(RED); 
 		    tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,1);
 		}else{
@@ -265,7 +265,7 @@ void menu_visualizacion_signal(uint32_t x, uint8_t reset){
 			tft.fillRect(6, 19, 178, 170, BLACK);
 		}
 
-		new_value = map(x , 0 ,16777216, 188, 18);
+		new_value = map(x , 0 ,2000000, 188, 18);
 		tft.drawPixel(sample_number, new_value, WHITE);
 		tft.drawLine(sample_number-1, last_value, sample_number, new_value, WHITE);
 
@@ -276,8 +276,8 @@ void menu_visualizacion_signal(uint32_t x, uint8_t reset){
     }
 
     /* LECTURA */
-	tft.setTextColor(WHITE); 
-	tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,1);
+	// tft.setTextColor(WHITE); 
+	// tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,1);
 
 }
 

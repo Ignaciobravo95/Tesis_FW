@@ -89,7 +89,7 @@ void setup(void){
 
 	/* ATTACH INTERRUPTS */
 	attachInterrupt(0,ISR_BUTT_PRESSED,RISING);
-	attachInterrupt(1,ISR_A_CHANGE,CHANGE);	
+	attachInterrupt(1,ISR_A_CHANGE,FALLING);	
 	Timer1.attachInterrupt(ISR_TIMER_EXPIRED); 
 
 	/* INITIALIZE MENU */
@@ -147,7 +147,7 @@ void setup(void){
 	CONF.item[3].doAction 			= &eeprom_write;
 	CONF.items_number				= 5;
 
-	currMenu = &VIS;
+	currMenu = &PPAL;
 	currItem = &currMenu->item[0];
 	/* INITIALIZE TFT DISPLAY */
 	init_tft();	
@@ -303,9 +303,6 @@ void loop(void){
  	
  	/* PERIODIC TASK 4 EVENT */
 	if(flag_periodic_task4){
-		if (currMenu == &VIS){
-			menu_visualizacion_signal( adcbuffer[0], false);
-		}
 		flag_periodic_task4 = false;
 	}
 
@@ -349,20 +346,24 @@ void ISR_BUTT_PRESSED(){
 
 // Funcion para la deteccion de giro del encoder (Interrupcion)
 void ISR_A_CHANGE(){
-	uint8_t currEncoderState = (digitalRead(pinCLK) << 1 | digitalRead(pinDT));
-   	 	
-   	if (currEncoderState > lastEncoderState)
-   		up = true;
-   	else
-   		up = false;
+	// uint8_t currEncoderState = (digitalRead(pinCLK) << 1 | digitalRead(pinDT));
+   	
 
-   	if ((currEncoderState == 0) && (lastEncoderState == 3))
-   		up = true;
 
-   	if ((currEncoderState == 3) && (lastEncoderState == 0))
-   		up = false;
+ //   	if (currEncoderState > lastEncoderState)
+ //   		up = true;
+ //   	else
+ //   		up = false;
 
-    lastEncoderState = currEncoderState;
+ //   	if ((currEncoderState == 0) && (lastEncoderState == 3))
+ //   		up = true;
+
+ //   	if ((currEncoderState == 3) && (lastEncoderState == 0))
+ //   		up = false;
+
+ //    lastEncoderState = currEncoderState;
+    
+    up = (digitalRead(pinCLK) == digitalRead(pinDT)); 
     flag_encoder = true;
 }
 

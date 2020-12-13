@@ -2,6 +2,7 @@
  *   		INCLUDES
  ***********************************************/
 #include "com_bt.h"
+#include "menu.h"
 
 /************************************************
  *			GLOBAL VARIABLE SECTION
@@ -22,6 +23,9 @@ uint8_t frec, mode;
 
 
 uint32_t timeout = TIMEOUT_MS; uint32_t NERRORES = 0;
+extern menu_t PPAL, VIS, PAC, CONF;
+extern menu_t *currMenu;
+
 /************************************************
  *   		PRIVATE FUNCTION DEFINITION
  ***********************************************/
@@ -119,6 +123,8 @@ e_UartErrors processFrame(){
 				}
 				pushADC((AdcDataType *)adcvalue);
 				pushCMD(SEND_ACK);				
+				if (currMenu == &VIS)
+						menu_visualizacion_signal(  (*( AdcDataType *)adcvalue & 0x00FFFFFF ) , false);
 				return NO_ERROR;
 	 		break;
 
