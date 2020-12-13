@@ -4,7 +4,7 @@
 /************************************************
  *  		   INCLUDES SECTION
  ***********************************************/
-#include <Stdint.h>				
+//#include <Stdint.h>				
 #include "extra.h"
 #include "HardwareSerial.h"
 /************************************************

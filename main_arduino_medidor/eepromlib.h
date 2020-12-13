@@ -5,7 +5,7 @@
  *  		   INCLUDES SECTION
  ***********************************************/
 #include <EEPROM.h> 
-#include <Stdint.h>				
+//#include <Stdint.h>				
 #include <avr/pgmspace.h>
 /************************************************
  *  		TYPEDEF SECTION

@@ -129,7 +129,9 @@ void reset_state_machine(){
  ***********************************************/
 void sendADCValue(){
 	pushCMD(SEND_ADC_MEASURE);
-	adc_value = (LoadCell.get_value(20) > 0) ? (uint32_t)LoadCell.get_value(20) : 0;
+  float tmp;
+  tmp = LoadCell.get_value(1);
+	adc_value = (tmp > 0) ? (uint32_t)tmp : 0;
 }
 
 void txUartStateMachine(){

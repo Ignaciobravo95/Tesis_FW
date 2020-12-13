@@ -4,7 +4,7 @@
 /************************************************
  *  		   INCLUDES SECTION
  ***********************************************/
-#include <Stdint.h>				
+//#include <Stdint.h>				
 #include <Arduino.h>
 #include "HardwareSerial.h"
 #include <HX711.h>

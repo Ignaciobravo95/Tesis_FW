@@ -14,8 +14,8 @@
 #define CLK  	3   // CLK  HX711
 #define pinLED1 7 // CPU state
 #define TIMER0_PERIOD		  	1000	 	/*  1ms */	
-#define PERIODIC_TASK1_PERIOD 	10000000	/*  Check battery and stuff */
-#define PERIODIC_TASK2_PERIOD 	500000   	/*  Send ADC MEASURE  */
+#define PERIODIC_TASK1_PERIOD 	100000	/*  Check battery and stuff */
+#define PERIODIC_TASK2_PERIOD 	100000   	/*  Send ADC MEASURE  */
 
 /************************************************
  *   		FUNCTIONS DECLARATION
@@ -98,7 +98,10 @@ void loop(void){
 		******************************/
 		sendADCValue();
 		/******************************/
-		// Serial.println("EVENT: PERIODIC TASK 2.");
+    // float tmp;
+    //tmp = LoadCell.get_value(20);
+		//Serial.println((tmp > 0) ? (uint32_t)tmp : 0);
+		//Serial.println("EVENT: PERIODIC TASK 2.");
 		flag_periodic_task2 = false;
 	}
 
