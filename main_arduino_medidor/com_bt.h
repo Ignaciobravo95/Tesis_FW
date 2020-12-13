@@ -7,6 +7,7 @@
 #include <Stdint.h>				
 #include <Arduino.h>
 #include "HardwareSerial.h"
+#include <HX711.h>
 /************************************************
  *   		DEFINES SECTION
  ***********************************************/
@@ -65,6 +66,7 @@ typedef struct{
 /************************************************
  *   		GLOBAL DATA SECTION
  ***********************************************/
+extern HX711 LoadCell;
 extern HardwareSerial Serial;
 extern uint8_t value_frec;
 extern uint8_t value_mode;

@@ -15,7 +15,7 @@ uint8_t frame_tx[MAX_FRAME_SIZE] = {0};
 uint8_t frame_rx[MAX_FRAME_SIZE] = {0};
 uint8_t waiting_ans	= false;
 
-AdcDataType adc_value = 33222;
+AdcDataType adc_value = 31200;
 
 uint32_t timeout = TIMEOUT_MS;	uint32_t NERRORES = 0;
 /************************************************
@@ -129,6 +129,7 @@ void reset_state_machine(){
  ***********************************************/
 void sendADCValue(){
 	pushCMD(SEND_ADC_MEASURE);
+	adc_value = (LoadCell.get_value(20) > 0) ? (uint32_t)LoadCell.get_value(20) : 0;
 }
 
 void txUartStateMachine(){

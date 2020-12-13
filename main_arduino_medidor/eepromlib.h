@@ -21,10 +21,10 @@ typedef enum add{
 /************************************************
  *   		DEFINES SECTION
  ***********************************************/
-#define DEFAULT_ID		 	12345
+#define DEFAULT_ID		 	12000
 #define DEFAULT_TH			55
-#define DEFAULT_FREC		1
-#define DEFAULT_MODE		0
+#define DEFAULT_FREC		5
+#define DEFAULT_MODE		1
 #define DEFAULT_BUJIA		8
 
 /************************************************

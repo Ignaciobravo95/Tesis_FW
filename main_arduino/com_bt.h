@@ -5,14 +5,13 @@
  *  		   INCLUDES SECTION
  ***********************************************/
 #include <Stdint.h>				
-#include <Arduino.h>
-#include <avr/pgmspace.h>
+#include "extra.h"
 #include "HardwareSerial.h"
 /************************************************
  *   		DEFINES SECTION
  ***********************************************/
 #define AdcDataType			uint32_t // 24 bit - 16bit
-#define BUFFER_SIZE			10
+#define BUFFER_SIZE			2
 
 #define START_BYTE 			0xAA
 #define STOP_BYTE 			0xBB
@@ -67,8 +66,8 @@ typedef struct{
  *   		GLOBAL DATA SECTION
  ***********************************************/
 extern HardwareSerial Serial;
-extern uint8_t value_frec;
-extern uint8_t value_mode;
+extern uint32_t global_val[5];
+
 
 /************************************************
  *   		FUNCTIONS DECLARATION

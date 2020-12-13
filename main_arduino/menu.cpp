@@ -174,72 +174,34 @@ void menu_pacientes_option(uint8_t i){
 }
 
 /* FIELD */
-void menu_visualizacion_fields(uint16_t x,uint16_t y,uint16_t z){
-	float presion = x * 99.9 / 65535.0 ;
+void menu_visualizacion_fields(){
+	String str1 = String(global_val[BUJIA]);
+	String str2 = String(global_val[TH]);
+	
+	while (str1.length() < 2){
+		str1 = '0' + str1;
+	}
 
-	/* LECTURA */
-	if(x > 180){
-        tft.setTextColor(RED); 
-        tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,1);
-    }else{
-        tft.setTextColor(WHITE); 
-        tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,1);
-    }
+	while (str2.length() < 2){
+		str2 = '0' + str2;
+	}
 
     /* BUJIA */
-    String str = String(y);
-	while (str.length() < 2){
-		str = '0' + str;
-	}
     tft.setTextColor(WHITE);
-	tft.setTextSize(2);tft.setCursor(280,142); tft.print(str);
+	tft.setTextSize(2);tft.setCursor(280,142); tft.print(str1);
 
 	/* TH */
-	str = String(z);
-	while (str.length() < 2){
-		str = '0' + str;
-	}
 	tft.setTextColor(WHITE);
-	tft.setTextSize(2);tft.setCursor(270,162); tft.print(str);	
+	tft.setTextSize(2);tft.setCursor(270,162); tft.print(str2);	
+
+	/* LECTURA */
+	tft.setTextColor(WHITE); 
+	tft.setTextSize(4);tft.setCursor(195,76); tft.print(0.0,1);
 }
 
-void menu_visualizacion_signal(uint16_t x, uint8_t reset){
-	static uint8_t sample_number = 5, last_value = 188;
-	uint8_t new_value;
-	float presion = x * 99.9 / 65535.0 ;
-
-	/* LECTURA NUMBER */
-	tft.fillRect(195,76,96,35,BLACK);
-
-	if (!reset){
-		if(x > 180){
-		    tft.setTextColor(RED); 
-		    tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,1);
-		}else{
-		    tft.setTextColor(WHITE); 
-		    tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,1);
-		}
-		/* LECTURA VS SAMPLE */
-		sample_number++;
-		if (sample_number > 184 ){
-			sample_number = 6; 
-			tft.fillRect(6, 19, 178, 170, BLACK);
-		}
-
-		new_value = map(x , 0 ,65536, 188, 18);
-		tft.drawPixel(sample_number, new_value, WHITE);
-		tft.drawLine(sample_number-1, last_value, sample_number, new_value, WHITE);
-
-		last_value = new_value;
-    }
-    else{
-    	sample_number = 5;
-    }
-}
-
-void menu_configuracion_fields(uint16_t x,uint16_t y,uint16_t z){
-	String str1 = String(x);
-	String str2 = String(y);
+void menu_configuracion_fields(){
+	String str1 = String(global_val[TH]);
+	String str2 = String(global_val[FREC]);
 
 	while (str1.length() < 2){
  		str1 = '0' + str1;
@@ -260,7 +222,7 @@ void menu_configuracion_fields(uint16_t x,uint16_t y,uint16_t z){
 	/* MODO */
 	tft.setTextColor(WHITE);
 	tft.setTextSize(2);
-	if(z == 0){
+	if(global_val[MODE] == 0){
 		tft.setCursor(150,145); tft.print("PRESS & HOLD");
 	}
 	else {
@@ -268,15 +230,55 @@ void menu_configuracion_fields(uint16_t x,uint16_t y,uint16_t z){
 	}
 }
 
-void menu_pacientes_fields(uint16_t x,uint16_t y,uint16_t z){
+void menu_pacientes_fields(){
+	String str = String(global_val[IDPAC]);
 	/* UMBRAL */
-	String str = String(x);
  	while (str.length() < 5){
  		str = '0' + str;
  	}
 	tft.setTextSize(4); 
 	tft.setTextColor(WHITE);  
 	tft.setCursor(92,  125); tft.print(str);
+}
+
+/* SIGNAL */
+void menu_visualizacion_signal(uint32_t x, uint8_t reset){
+	static uint8_t sample_number = 5, last_value = 188;
+	uint8_t new_value;
+	float presion = x * 99.9 / 16777215.0 ;
+
+	/* LECTURA NUMBER */
+	tft.fillRect(195,76,96,35,BLACK);
+
+	if (!reset){
+		if(x > 180){
+		    tft.setTextColor(RED); 
+		    tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,1);
+		}else{
+		    tft.setTextColor(WHITE); 
+		    tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,1);
+		}
+		/* LECTURA VS SAMPLE */
+		sample_number++;
+		if (sample_number > 184 ){
+			sample_number = 6; 
+			tft.fillRect(6, 19, 178, 170, BLACK);
+		}
+
+		new_value = map(x , 0 ,16777216, 188, 18);
+		tft.drawPixel(sample_number, new_value, WHITE);
+		tft.drawLine(sample_number-1, last_value, sample_number, new_value, WHITE);
+
+		last_value = new_value;
+    }
+    else{
+    	sample_number = 5;
+    }
+
+    /* LECTURA */
+	tft.setTextColor(WHITE); 
+	tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,1);
+
 }
 
 /* STATUS */

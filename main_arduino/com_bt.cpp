@@ -173,8 +173,8 @@ void txUartStateMachine(){
 	           		frame_tx[START] 	= START_BYTE; 	// START BYTE
 	          		frame_tx[LENGTH] 	= 2;			// LENGTH PAYLOAD - FREC + MODE
 	          		frame_tx[CMDID] 	= SEND_CONFIG; 	// COMAND ID
-	          		frame_tx[DATA0] 	= value_frec;	// PAYLOAD
-	          		frame_tx[DATA1] 	= value_mode;	//
+	          		frame_tx[DATA0] 	= global_val[FREC];	// PAYLOAD
+	          		frame_tx[DATA1] 	= global_val[MODE];	//
 	          		frame_tx[DATA1+1]	= STOP_BYTE;	// STOP BYTE
 
 	          		uartSM.currUartSTATE = SENDING_PACKET;		

@@ -4,6 +4,7 @@
 #include "menu.h"
 #include "com_bt.h"
 #include "eepromlib.h"
+#include "extra.h"
 #include <math.h>
 #include <TimerOne.h>
 
@@ -19,30 +20,17 @@
 #define PERIODIC_TASK2_PERIOD 	250000   	/*  = .25s 	Blinking items 			*/
 #define PERIODIC_TASK3_PERIOD 	15000000   	/*  = 15s 	Writes items 			*/
 
+
 /************************************************
  *   		FUNCTIONS DECLARATION
  ***********************************************/
 void eeprom_write();
 void clearFlagRecordingSD();
 void setFlagRecordingSD();
-uint8_t checknDigits(uint16_t x);
-uint8_t getDigitValue(uint16_t x, uint8_t dig);
-uint16_t modValueDigit(uint16_t x, uint8_t dig, uint8_t digitValue);
-uint8_t getDigitMax(uint16_t max, uint16_t x, uint8_t numdig,  uint8_t dig);
 
 /************************************************
  *   		GLOBAL DATA SECTION
  ***********************************************/
-/* CONST */
-uint32_t pow_10_lut[10] = {	1,
-							10,
-							100,
-							1000,
-							10000,
-							100000,
-							1000000,
-							10000000,
-							100000000};
 /* INTERRUPT FLAGS */
 volatile bool flag_butt_pressed = false;
 volatile bool flag_encoder = false;
@@ -50,39 +38,40 @@ volatile bool up = false;
 volatile bool flag_periodic_task1 = false;
 volatile bool flag_periodic_task2 = false;
 volatile bool flag_periodic_task3 = false;
+volatile bool flag_periodic_task4 = false;
 volatile bool flag_timer0		  = false;
 
 /* AUX VARIABLES */
 volatile uint8_t lastEncoderState = 0;
 volatile uint32_t count = 0; 
-uint32_t task3_count_value = 0, task2_count_value = 0, task1_count_value = 0;
+uint32_t PERIODIC_TASK4_PERIOD = 0;
+uint32_t task4_count_value = 0,task3_count_value = 0, task2_count_value = 0, task1_count_value = 0;
 uint16_t upperlimit = 0;
 uint8_t recordingSD = 0;
+
+/* GLOBAL */
+extern uint32_t global_val[5];
+extern AdcDataType adcbuffer[BUFFER_SIZE];
 
 /* MENU ITEMS */
 menu_t PPAL, VIS, PAC, CONF;
 menu_t *currMenu;
 menuItem_t *currItem;
 
-/* EEPROM VALUES */					/* DYNAMIC RANGE */
-uint16_t value_paciente = 0;		/* DR: 0 - 65536 */
-uint8_t  value_bujia = 0;			/* DR: 0 - 10*/
-uint8_t  value_th = 0;				/* DR: 0 - 999 */
-uint8_t  value_frec = 0;			/* DR: 0 - 10 */
-uint8_t  value_mode = 0;			/* DR: 0 - 1 */
-
 void setup(void){
 	/* READ CONFIG FROM EEPROM */
-	value_bujia 	= getEEPROM_bujia();
-	value_th 		= getEEPROM_th();
-	value_frec 		= getEEPROM_frec();
-	value_mode 		= getEEPROM_mode();
-	value_paciente 	= getEEPROM_id();
+	global_val[BUJIA] 	= getEEPROM_bujia();
+	global_val[TH] 		= getEEPROM_th();
+	global_val[FREC] 	= getEEPROM_frec();
+	global_val[MODE] 	= getEEPROM_mode();
+	global_val[IDPAC] 	= getEEPROM_id();
 
 	/* TIMER INIT */
 	Timer1.initialize(TIMER0_PERIOD); /* Value in microseconds? */
 
 	/* TIMER TASK CALC */
+	PERIODIC_TASK4_PERIOD = (uint32_t)(1000000/global_val[FREC]);
+	task4_count_value = PERIODIC_TASK4_PERIOD / TIMER0_PERIOD; 	
 	task3_count_value = PERIODIC_TASK3_PERIOD / TIMER0_PERIOD; 	
 	task2_count_value = PERIODIC_TASK2_PERIOD / TIMER0_PERIOD;
 	task1_count_value = PERIODIC_TASK1_PERIOD / TIMER0_PERIOD;
@@ -120,7 +109,7 @@ void setup(void){
 	VIS.item[3].nextMenu 			= NULL;
 	VIS.items_number				= 4;
 	VIS.item[3].blinking_function 	= &blinkBUJIA;
-	VIS.item[3].curr_value 	     	= value_bujia;
+	VIS.item[3].value_id 	     	= BUJIA;
 	VIS.item[3].value_limit	      	= 13;
 	VIS.item[3].doAction		 	= &eeprom_write;
 	VIS.item[0].doAction		  	= &setFlagRecordingSD;
@@ -134,7 +123,7 @@ void setup(void){
 	PAC.item[2].nextMenu 			= &PPAL;
 	PAC.items_number				= 3;
 	PAC.item[0].blinking_function	= &blinkIDPACIENTE;
-	PAC.item[0].curr_value 			= value_paciente;
+	PAC.item[0].value_id 			= IDPAC;
 	PAC.item[0].value_limit			= 40001;
 	PAC.item[1].doAction 			= &eeprom_write;
 	
@@ -149,16 +138,16 @@ void setup(void){
 	CONF.item[0].blinking_function 	= &blinkTH;
 	CONF.item[1].blinking_function 	= &blinkFREQ;
 	CONF.item[2].blinking_function 	= &blinkMODO;
-	CONF.item[0].curr_value			= value_th;
-	CONF.item[1].curr_value			= value_frec;
-	CONF.item[2].curr_value			= value_mode;
+	CONF.item[0].value_id			= TH;
+	CONF.item[1].value_id			= FREC;
+	CONF.item[2].value_id			= MODE;
 	CONF.item[0].value_limit 		= 100;
 	CONF.item[1].value_limit 		= 11;
 	CONF.item[2].value_limit 		= 2;
 	CONF.item[3].doAction 			= &eeprom_write;
 	CONF.items_number				= 5;
 
-	currMenu = &PPAL;
+	currMenu = &VIS;
 	currItem = &currMenu->item[0];
 	/* INITIALIZE TFT DISPLAY */
 	init_tft();	
@@ -197,19 +186,16 @@ void loop(void){
 			currItem -> doAction();	
 		}
 		if (currItem -> nextMenu != NULL ){
-			menu_visualizacion_signal(0, true);
+			if (currMenu == &VIS)
+				menu_visualizacion_signal(0, true);
 			clearFlagRecordingSD();
 			index = 0;
 			currMenu = currItem -> nextMenu;
 			currItem = &currMenu -> item[index];
-			for ( i = 0; i < currMenu -> items_number ; i++ ) currMenu->item[i].tmp_value = currMenu->item[i].curr_value;
+			for ( i = 0; i < currMenu -> items_number ; i++ ) currMenu->item[i].tmp_value = global_val[currMenu->item[i].value_id];
 			currMenu -> display_header();
 			currMenu -> display_option(index);
-			if (currMenu -> display_fields != NULL ){
-				if (currMenu == &VIS) 		currMenu -> display_fields(0, value_bujia, value_th);		
-				else if (currMenu == &PAC)	currMenu -> display_fields(value_paciente, 0, 0);		
-				else if (currMenu == &CONF)	currMenu -> display_fields(value_th, value_frec, value_mode);
-			}			 				
+			if (currMenu -> display_fields != NULL ) currMenu -> display_fields();	
 			batteryStatus(0);
 			bluetoothStatus(0);
 			/* SET ENCODER UPPER LIMIT */
@@ -273,7 +259,7 @@ void loop(void){
 	}
 
 	/* PERIODIC TASK 1 EVENT */
-	if ((flag_periodic_task1) && (!flag_periodic_task2) && (!flag_periodic_task3)){
+	if ((flag_periodic_task1) && (!flag_periodic_task2) && (!flag_periodic_task3) && (!flag_periodic_task4)){
 		digitalWrite(pinLED1, HIGH);
 		/******************************
 		- CHECK PERIODIC TASK W/LESS PRIORITY:
@@ -289,7 +275,7 @@ void loop(void){
 	}
 
 	/* PERIODIC TASK 2 EVENT */
-	if ((flag_periodic_task2) && (!flag_periodic_task3)){
+	if ((flag_periodic_task2) && (!flag_periodic_task3) && (!flag_periodic_task4)){
 		digitalWrite(pinLED1, HIGH);
 		/******************************
 		- BLINK IF ANY BLINKING ITEMS 
@@ -302,7 +288,7 @@ void loop(void){
 	}
 
 	/* PERIODIC TASK 3 EVENT */
-	if(flag_periodic_task3){
+	if((flag_periodic_task3)  && (!flag_periodic_task4)) {
 		digitalWrite(pinLED1, HIGH);
 		/******************************
 		- WRITES DATA IN SD CARD
@@ -313,6 +299,14 @@ void loop(void){
 		/******************************/	
 		//Serial.println("EVENT: PERIODIC TASK 3.");
 		flag_periodic_task3 = false;
+	}
+ 	
+ 	/* PERIODIC TASK 4 EVENT */
+	if(flag_periodic_task4){
+		if (currMenu == &VIS){
+			menu_visualizacion_signal( adcbuffer[0], false);
+		}
+		flag_periodic_task4 = false;
 	}
 
 	/* SERIAL DATA FROM BT EVENT */
@@ -338,7 +332,6 @@ void loop(void){
 	}
 
 	digitalWrite(pinLED1, LOW);
-
 	/* SEND TO SLEEP */
 }					
 
@@ -384,6 +377,9 @@ void ISR_TIMER_EXPIRED(){
 	if (count % task3_count_value == 0){
 		flag_periodic_task3 = true;
 	}
+	if (count % task4_count_value == 0){
+		flag_periodic_task4 = true;
+	}
 	flag_timer0 = true;
 }
 
@@ -399,36 +395,38 @@ void eeprom_write(){
 		switch (i){
 			case 0:
 				if (currMenu == &PAC){
-					value_paciente = currMenu -> item[i].tmp_value;
-					writeEEPROM_id(value_paciente);
+					global_val[IDPAC] = currMenu -> item[i].tmp_value;
+					writeEEPROM_id(global_val[IDPAC]);
 				}
 				else if (currMenu == &CONF){
-					value_th = currMenu -> item[i].tmp_value;
-					writeEEPROM_th(value_th);
+					global_val[TH] = currMenu -> item[i].tmp_value;
+					writeEEPROM_th(global_val[TH]);
 				}
 			break;
 			
 			case 1:
 				if (currMenu == &CONF){
-					value_frec = currMenu -> item[i].tmp_value;
-					writeEEPROM_frec(value_frec);
+					global_val[FREC] = currMenu -> item[i].tmp_value;
+					writeEEPROM_frec(global_val[FREC]);
+					PERIODIC_TASK4_PERIOD = (uint32_t)(1000000/global_val[FREC]);
+					task4_count_value = PERIODIC_TASK4_PERIOD / TIMER0_PERIOD; 	
 				}
 			break;
 
 			case 2:
 				if (currMenu == &CONF){
-					value_mode = currMenu -> item[i].tmp_value;
-					writeEEPROM_mode(value_mode);
+					global_val[MODE] = currMenu -> item[i].tmp_value;
+					writeEEPROM_mode(global_val[MODE]);
 				} 
 			break;
 
 			case 3:
 				if (currMenu == &VIS){
-					value_bujia = currMenu -> item[i].tmp_value;
-					writeEEPROM_bujia(value_bujia);
+					global_val[BUJIA] = currMenu -> item[i].tmp_value;
+					writeEEPROM_bujia(global_val[BUJIA]);
 				}
 		}
-		currMenu -> item[i].curr_value = currMenu -> item[i].tmp_value;
+		global_val[currMenu -> item[i].value_id] = currMenu -> item[i].tmp_value;
 	}
 }
 
@@ -444,76 +442,3 @@ void clearFlagRecordingSD(){
 	blinkREC(true);
 }
 
-// Chequea la cantidad de digitos del valor x (maximo 8 digitos)
-uint8_t checknDigits(uint16_t x){
-    int8_t i = 8;    
-    uint16_t aux;
-    while ( i >= 0){
-    	aux = x / pow_10_lut[i];
-        if ( aux > 0  &&  aux < 10 ){
-            return (i + 1);
-        }
-        i --;
-    }
-    return 0;
-}
-
-// Chequea el valor del digito 'dig' en x
-uint8_t getDigitValue(uint16_t x, uint8_t dig){
-
-	return ((x / pow_10_lut[dig])  % 10);
-}
-
-// Modifica el valor del digito 'dig' a 'digitValue' de x
-uint16_t modValueDigit(uint16_t x, uint8_t dig, uint8_t digitValue){
-	x = x - getDigitValue(x, dig)*pow_10_lut[dig];
-	x = x + digitValue*pow_10_lut[dig];
-
-	return x;
-}
-
-// Determina el valor maximo del digito basado en el valor actual 
-// de los demas digitos y el valor maximo permitido
-uint8_t getDigitMax(uint16_t max, uint16_t x, uint8_t numdig, uint8_t dig){
-	int8_t i;
-	uint16_t maxdigVal, xdigVal;
-
-	numdig = numdig - 1;
-	for (i = numdig; i >= 0; i--){
-		maxdigVal 	= getDigitValue(max, i);
-		xdigVal 	= getDigitValue(x, i);
-
-		if ( i > dig){
-			if (xdigVal < maxdigVal){
-				return 10;
-			}
-			else if (xdigVal > maxdigVal){
-				return 30; // error no deberia suceder nunca
-			}
-		}
-		else if ( i < dig){
-			if (xdigVal < maxdigVal){
-				return (getDigitValue(max, dig) + 1);
-			}
-			else if (xdigVal > maxdigVal){
-				return getDigitValue(max, dig);
-			}	
-			else{
-				if ( i == 0){
-					if (xdigVal <= maxdigVal){
-						return (getDigitValue(max, dig) + 1);
-					}
-					else if (xdigVal > maxdigVal){
-						return getDigitValue(max, dig);
-					}	
-				}
-			}
-		}
-		else{
-			if ( dig == 0 ){
-				return (getDigitValue(max, dig) + 1);
-			}
-		}
-	}
-  return 50;
-}

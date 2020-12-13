@@ -4,7 +4,8 @@
 /************************************************
  *  		   INCLUDES SECTION
  ***********************************************/
-#include <Stdint.h>				
+#include <Stdint.h>	
+#include "extra.h"			
 #include <stddef.h>
 #include <avr/pgmspace.h>
 
@@ -37,8 +38,8 @@
 typedef struct menu_item{
 	bool blinking = 0;
 	uint16_t value_limit = 0;
+	uint16_t value_id = 0;
 	uint16_t tmp_value = 0;
-	uint16_t curr_value = 0;
 	void (*blinking_function)(uint16_t x, uint8_t force, uint8_t dig) = NULL;
 	void (*doAction)() = NULL;
 	void *nextMenu = NULL;
@@ -49,8 +50,10 @@ typedef struct menu_page{
 	menuItem_t item[5];
 	void (*display_header)() = NULL;
 	void (*display_option)(uint8_t i) = NULL;
-	void (*display_fields)(uint16_t x, uint16_t y, uint8_t z) = NULL;
+	void (*display_fields)() = NULL;
 }menu_t;
+
+
 /************************************************
  *   		DEFINES SECTION
  ***********************************************/
@@ -67,6 +70,7 @@ typedef struct menu_page{
 /************************************************
  *   		GLOBAL DATA SECTION
  ***********************************************/
+extern uint32_t global_val[5];
 
 /************************************************
  *   		FUNCTIONS DECLARATION
@@ -168,7 +172,7 @@ void menu_configuracion_option(uint8_t i);
  * @param <refresh> <Refresca la pantalla>
  *
  */
-void menu_visualizacion_fields(uint16_t x,uint16_t y,uint16_t z);
+void menu_visualizacion_fields();
 
 /**
  * @brief <Imprime el menu principal en el display>
@@ -178,7 +182,7 @@ void menu_visualizacion_fields(uint16_t x,uint16_t y,uint16_t z);
  * @param <refresh> <Refresca la pantalla>
  *
  */
-void menu_visualizacion_signal(uint16_t x, uint8_t reset);
+void menu_visualizacion_signal(uint32_t x, uint8_t reset);
 
 /**
  * @brief <Imprime el menu principal en el display>
@@ -188,7 +192,7 @@ void menu_visualizacion_signal(uint16_t x, uint8_t reset);
  * @param <refresh> <Refresca la pantalla>
  *
  */
-void menu_paciente_fields(uint16_t x,uint16_t y,uint16_t z);
+void menu_configuracion_fields();
 
 /**
  * @brief <Imprime el menu principal en el display>
@@ -198,17 +202,7 @@ void menu_paciente_fields(uint16_t x,uint16_t y,uint16_t z);
  * @param <refresh> <Refresca la pantalla>
  *
  */
-void menu_configuracion_fields(uint16_t x,uint16_t y,uint16_t z);
-
-/**
- * @brief <Imprime el menu principal en el display>
- *
- *
- * @param <i> 	<Resalta la opcion seleccionada.>
- * @param <refresh> <Refresca la pantalla>
- *
- */
-void menu_pacientes_fields(uint16_t x,uint16_t y,uint16_t z);
+void menu_pacientes_fields();
 
 /**
  * @brief <Imprime el menu principal en el display>
