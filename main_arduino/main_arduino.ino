@@ -84,8 +84,8 @@ void setup(void){
 	pinMode(pinSW	,INPUT);
 	pinMode(pinCLK 	,INPUT);
 	pinMode(pinDT 	,INPUT);
-	pinMode(pinLED1 ,OUTPUT);
-	digitalWrite(pinLED1, HIGH);	
+	// pinMode(pinLED1 ,OUTPUT);
+	// digitalWrite(pinLED1, HIGH);	
 
 	/* ATTACH INTERRUPTS */
 	attachInterrupt(0,ISR_BUTT_PRESSED,RISING);
@@ -174,7 +174,7 @@ void loop(void){
 	/* Main LOOP */
 	/* BUTTON PRESSED EVENT */
 	if (flag_butt_pressed){
-		digitalWrite(pinLED1, HIGH);
+		// digitalWrite(pinLED1, HIGH);
 		/******************************
 		IF APPLICABLE TO  SELECTED ITEM 
 		- PERFORM ACTION (SAVE, TURN ON, DISP MSG, ETC)
@@ -233,7 +233,7 @@ void loop(void){
 
 	/* ENCODER ROTATING EVENT */
 	if (flag_encoder){
-		digitalWrite(pinLED1, HIGH);
+		// digitalWrite(pinLED1, HIGH);
 		/******************************
 		- CHANGE SELECTED OPTION OR
 		CHANGE SELECTED FIELD VALUE
@@ -260,7 +260,7 @@ void loop(void){
 
 	/* PERIODIC TASK 1 EVENT */
 	if ((flag_periodic_task1) && (!flag_periodic_task2) && (!flag_periodic_task3) && (!flag_periodic_task4)){
-		digitalWrite(pinLED1, HIGH);
+		// digitalWrite(pinLED1, HIGH);
 		/******************************
 		- CHECK PERIODIC TASK W/LESS PRIORITY:
 			- BATTERY VOLTAGE  
@@ -276,7 +276,7 @@ void loop(void){
 
 	/* PERIODIC TASK 2 EVENT */
 	if ((flag_periodic_task2) && (!flag_periodic_task3) && (!flag_periodic_task4)){
-		digitalWrite(pinLED1, HIGH);
+		// digitalWrite(pinLED1, HIGH);
 		/******************************
 		- BLINK IF ANY BLINKING ITEMS 
 		******************************/
@@ -289,7 +289,7 @@ void loop(void){
 
 	/* PERIODIC TASK 3 EVENT */
 	if((flag_periodic_task3)  && (!flag_periodic_task4)) {
-		digitalWrite(pinLED1, HIGH);
+		// digitalWrite(pinLED1, HIGH);
 		/******************************
 		- WRITES DATA IN SD CARD
 		******************************/	
@@ -308,7 +308,7 @@ void loop(void){
 
 	/* SERIAL DATA FROM BT EVENT */
 	if (Serial.available() > 0){
-	 	digitalWrite(pinLED1, HIGH);
+	 	// digitalWrite(pinLED1, HIGH);
 		/******************************
 		- PROCCESS RECEIVED DATA FROM
 		END DEVICE.
@@ -328,7 +328,7 @@ void loop(void){
 		flag_timer0 = false;
 	}
 
-	digitalWrite(pinLED1, LOW);
+	// digitalWrite(pinLED1, LOW);
 	/* SEND TO SLEEP */
 }					
 
