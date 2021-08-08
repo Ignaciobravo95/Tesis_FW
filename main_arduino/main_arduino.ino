@@ -11,9 +11,9 @@
 /************************************************
  *   		DEFINES SECTION
  ***********************************************/
-#define pinSW 	2  // CLK del encoder
-#define pinDT  	3  // DT  del encoder
-#define pinCLK  A5  // DT  del encoder
+#define pinSW 	21  // CLK del encoder
+#define pinDT  	20  // DT  del encoder
+#define pinCLK  19  // DT  del encoder
 #define pinLED1 13 // CPU state
 #define TIMER0_PERIOD		  	1000	 	/*  = 1ms */	
 #define PERIODIC_TASK1_PERIOD 	5000000 	/*  = 10s	Check battery and bt	*/
@@ -88,8 +88,8 @@ void setup(void){
 	// digitalWrite(pinLED1, HIGH);	
 
 	/* ATTACH INTERRUPTS */
-	attachInterrupt(0,ISR_BUTT_PRESSED,RISING);
-	attachInterrupt(1,ISR_A_CHANGE,FALLING);	
+	attachInterrupt(digitalPinToInterrupt(pinSW),ISR_BUTT_PRESSED,RISING);
+	attachInterrupt(digitalPinToInterrupt(pinCLK),ISR_A_CHANGE,FALLING);	
 	Timer1.attachInterrupt(ISR_TIMER_EXPIRED); 
 
 	/* INITIALIZE MENU */
