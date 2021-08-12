@@ -124,6 +124,20 @@ void menu_pacientes_header();
  */
 void menu_configuracion_header();
 
+
+/**
+ * @brief <Imprime los graficos estaticos del menu CALIBRACION PASO 1>
+ *
+ *
+ * @param 	No
+ * @return  No
+ *
+ */
+void menu_calibracion_step1_header();
+void menu_calibracion_step2_header();
+void menu_calibracion_step3_header();
+void menu_calibracion_step4_header();
+
 /**
  * @brief <Imprime grafico que muestra resalta la opcion seleccionada >
  *
@@ -163,6 +177,16 @@ void menu_pacientes_option(uint8_t i);
  *
  */
 void menu_configuracion_option(uint8_t i);
+
+/**
+ * @brief <Imprime grafico que muestra resalta la opcion seleccionada >
+ *
+ *
+ * @param 	<i> indice de la opcion seleccionada
+ * @return  No
+ *
+ */
+void menu_calibracion_option(uint8_t i);
 
 /**
  * @brief <Imprime los campos que van a ser editables luego>

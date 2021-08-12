@@ -54,7 +54,7 @@ extern uint32_t global_val[5];
 extern AdcDataType adcbuffer[BUFFER_SIZE];
 
 /* MENU ITEMS */
-menu_t PPAL, VIS, PAC, CONF;
+menu_t PPAL, VIS, PAC, CONF, CAL1, CAL2, CAL3, CAL4;
 menu_t *currMenu;
 menuItem_t *currItem;
 
@@ -98,7 +98,8 @@ void setup(void){
 	PPAL.item[0].nextMenu 	= &VIS;		// CREA UN BOTON QUE CUANDO LO APRETE PASE A VISUALIZACION
 	PPAL.item[1].nextMenu 	= &PAC;
 	PPAL.item[2].nextMenu 	= &CONF;
-	PPAL.items_number		= 3;
+	PPAL.item[3].nextMenu 	= &CAL1;
+	PPAL.items_number		= 4;
 
 	VIS.display_header				= &menu_visualizacion_header;
 	VIS.display_option				= &menu_visualizacion_option;
@@ -146,6 +147,30 @@ void setup(void){
 	CONF.item[2].value_limit 		= 2;
 	CONF.item[3].doAction 			= &eeprom_write;
 	CONF.items_number				= 5;
+
+	CAL1.display_header				= &menu_calibracion_step1_header;
+	CAL1.display_option				= &menu_calibracion_option;
+	CAL1.item[0].nextMenu 			= &CAL2;
+	CAL1.item[1].nextMenu 			= &PPAL;
+	CAL1.items_number				= 2;
+
+	CAL2.display_header				= &menu_calibracion_step2_header;
+	CAL2.display_option				= &menu_calibracion_option;
+	CAL2.item[0].nextMenu 			= &CAL3;
+	CAL2.item[1].nextMenu 			= &PPAL;
+	CAL2.items_number				= 2;
+
+	CAL3.display_header				= &menu_calibracion_step3_header;
+	CAL3.display_option				= &menu_calibracion_option;
+	CAL3.item[0].nextMenu 			= &CAL4;
+	CAL3.item[1].nextMenu 			= &PPAL;
+	CAL3.items_number				= 2;
+
+	CAL4.display_header				= &menu_calibracion_step4_header;
+	CAL4.display_option				= &menu_calibracion_option;
+	CAL4.item[0].nextMenu 			= &PPAL;
+	CAL4.item[1].nextMenu 			= &PPAL;
+	CAL4.items_number				= 2;
 
 	currMenu = &PPAL;
 	currItem = &currMenu->item[0];

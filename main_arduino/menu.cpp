@@ -36,19 +36,22 @@ void init_tft(){
 void menu_principal_header(){
 	/* TITLE DRAWING */
 	tft.fillScreen(BLACK);
-	tft.fillRoundRect(50, 150, 220,  40, 8, RED   );
-	tft.drawRoundRect(50, 150, 220,  40, 8, YELLOW);  
-	tft.fillRoundRect(50, 100, 220,  40, 8, RED   );   
-	tft.drawRoundRect(50, 100, 220,  40, 8, YELLOW);
-	tft.fillRoundRect(50,  50, 220,  40, 8, RED   );
-	tft.drawRoundRect(50,  50, 220,  40, 8, YELLOW); 
+	tft.fillRoundRect(50, 180, 220,  40, 8, RED   );
+	tft.drawRoundRect(50, 180, 220,  40, 8, YELLOW); 
+	tft.fillRoundRect(50, 130, 220,  40, 8, RED   );
+	tft.drawRoundRect(50, 130, 220,  40, 8, YELLOW);  
+	tft.fillRoundRect(50,  80, 220,  40, 8, RED   );   
+	tft.drawRoundRect(50,  80, 220,  40, 8, YELLOW);
+	tft.fillRoundRect(50,  30, 220,  40, 8, RED   );
+	tft.drawRoundRect(50,  30, 220,  40, 8, YELLOW); 
 	tft.setTextSize(2); 
-	tft.setTextColor(GREEN); 
-	tft.setCursor(190, 205); tft.print("UTN - FRC");
+	// tft.setTextColor(GREEN); 
+	// tft.setCursor(190, 205); tft.print("UTN - FRC");
 	tft.setTextColor(BLACK);  
-	tft.setCursor(82, 165); tft.print("Configuracion");
-	tft.setCursor(70, 115); tft.print("Num. de paciente");
-	tft.setCursor(82,  65); tft.print("Visualizacion");
+	tft.setCursor(90, 195); tft.print("Calibracion");
+	tft.setCursor(82, 145); tft.print("Configuracion");
+	tft.setCursor(70,  95); tft.print("Num. de paciente");
+	tft.setCursor(82,  45); tft.print("Visualizacion");
 }
  
 void menu_visualizacion_header(){
@@ -141,12 +144,86 @@ void menu_configuracion_header(){
 	tft.setCursor(242,100);tft.setTextSize(2);tft.print(" Hz");
 }
 
+void menu_calibracion_step1_header(){
+	/* TITLE DRAWING */
+	tft.fillScreen(BLACK); 
+	tft.fillRoundRect(40,  180, 110,  40, 8, RED   );
+	tft.drawRoundRect(40,  180, 110,  40, 8, YELLOW); 
+	tft.fillRoundRect(170, 180, 110,  40, 8, RED   );
+	tft.drawRoundRect(170, 180, 110,  40, 8, YELLOW);
+	tft.setTextSize(2); 
+	tft.setTextColor(BLACK);  
+	tft.setCursor(55,  195); tft.print("ACEPTAR");
+	tft.setCursor(180, 195); tft.print("CANCELAR");
+	tft.setTextColor(WHITE);  
+	tft.setCursor(60,  55); tft.print("CALIBRACION PASO 1:");
+	tft.setCursor(40,  95); tft.print("->Quitar peso de la");
+	tft.setCursor(40, 115); tft.print(" balanza y presionar");
+	tft.setCursor(40, 135); tft.print(" aceptar");
+}
+
+void menu_calibracion_step2_header(){
+	/* TITLE DRAWING */
+	tft.fillScreen(BLACK); 
+	tft.fillRoundRect(40,  180, 110,  40, 8, RED   );
+	tft.drawRoundRect(40,  180, 110,  40, 8, YELLOW); 
+	tft.fillRoundRect(170, 180, 110,  40, 8, RED   );
+	tft.drawRoundRect(170, 180, 110,  40, 8, YELLOW);
+	tft.setTextSize(2); 
+	tft.setTextColor(BLACK);  
+	tft.setCursor(55,  195); tft.print("ACEPTAR");
+	tft.setCursor(180, 195); tft.print("CANCELAR");
+	tft.setTextColor(WHITE);  
+	tft.setCursor(60,  55); tft.print("CALIBRACION PASO 2:");
+	tft.setCursor(40,  95); tft.print("->Colocar patron de");
+	tft.setCursor(40, 115); tft.print(" 2.5kg y presionar");
+	tft.setCursor(40, 135); tft.print(" aceptar");
+}
+
+void menu_calibracion_step3_header(){
+	/* TITLE DRAWING */
+	tft.fillScreen(BLACK); 
+	tft.fillRoundRect(40,  180, 110,  40, 8, RED   );
+	tft.drawRoundRect(40,  180, 110,  40, 8, YELLOW); 
+	tft.fillRoundRect(170, 180, 110,  40, 8, RED   );
+	tft.drawRoundRect(170, 180, 110,  40, 8, YELLOW);
+	tft.setTextSize(2); 
+	tft.setTextColor(BLACK);  
+	tft.setCursor(55,  195); tft.print("ACEPTAR");
+	tft.setCursor(180, 195); tft.print("CANCELAR");
+	tft.setTextColor(WHITE);  
+	tft.setCursor(60,  55); tft.print("CALIBRACION PASO 3:");
+	tft.setCursor(40,  95); tft.print("->Colocar patron de");
+	tft.setCursor(40, 115); tft.print(" 5.0kg y presionar");
+	tft.setCursor(40, 135); tft.print(" aceptar");
+}
+
+void menu_calibracion_step4_header(){
+	/* TITLE DRAWING */
+	tft.fillScreen(BLACK); 
+	tft.fillRoundRect(40,  180, 110,  40, 8, RED   );
+	tft.drawRoundRect(40,  180, 110,  40, 8, YELLOW); 
+	tft.fillRoundRect(170, 180, 110,  40, 8, RED   );
+	tft.drawRoundRect(170, 180, 110,  40, 8, YELLOW);
+	tft.setTextSize(2); 
+	tft.setTextColor(BLACK);  
+	tft.setCursor(55,  195); tft.print("ACEPTAR");
+	tft.setCursor(180, 195); tft.print("CANCELAR");
+	tft.setTextColor(WHITE);  
+	tft.setCursor(60,  55); tft.print("CALIBRACION PASO 3:");
+	tft.setCursor(40,  95); tft.print("->Colocar patron de");
+	tft.setCursor(40, 115); tft.print(" 1.0kg y presionar");
+	tft.setCursor(40, 135); tft.print(" aceptar");
+}
+
+
 /* OPTIONS */
 void menu_principal_option(uint8_t i){
 	/* OPTIONS */
-	tft.drawRoundRect(48,  48, 224, 44, 8, i == 0 ? YELLOW : BLACK ); 
-    tft.drawRoundRect(48,  98, 224, 44, 8, i == 1 ? YELLOW : BLACK ); 
-    tft.drawRoundRect(48, 148, 224, 44, 8, i == 2 ? YELLOW : BLACK ); 
+	tft.drawRoundRect(48,  28, 224, 44, 8, i == 0 ? YELLOW : BLACK ); 
+    tft.drawRoundRect(48,  78, 224, 44, 8, i == 1 ? YELLOW : BLACK ); 
+    tft.drawRoundRect(48, 128, 224, 44, 8, i == 2 ? YELLOW : BLACK ); 
+    tft.drawRoundRect(48, 178, 224, 44, 8, i == 3 ? YELLOW : BLACK ); 
 }
 
 void menu_visualizacion_option(uint8_t i){
@@ -171,6 +248,12 @@ void menu_pacientes_option(uint8_t i){
 	tft.drawRoundRect(48,  48, 224, 44, 8, i == 0 ? YELLOW : BLACK ); 
     tft.drawRoundRect(38, 178, 114, 44, 8, i == 1 ? YELLOW : BLACK ); 
     tft.drawRoundRect(168, 178, 114, 44, 8, i == 2? YELLOW : BLACK ); 
+}
+
+void menu_calibracion_option(uint8_t i){
+	/* OPTIONS */
+    tft.drawRoundRect(38,  178, 114, 44, 8, i == 0? YELLOW : BLACK ); 
+    tft.drawRoundRect(168, 178, 114, 44, 8, i == 1? YELLOW : BLACK ); 
 }
 
 /* FIELD */
