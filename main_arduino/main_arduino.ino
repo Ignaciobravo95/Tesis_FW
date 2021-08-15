@@ -16,7 +16,7 @@
 #define pinCLK  19  // DT  del encoder
 #define pinLED1 13 // CPU state
 #define TIMER0_PERIOD		  	1000	 	/*  = 1ms */	
-#define PERIODIC_TASK1_PERIOD 	5000000 	/*  = 10s	Check battery and bt	*/
+#define PERIODIC_TASK1_PERIOD 	2500000 	/*  = 10s	Check battery and bt	*/
 #define PERIODIC_TASK2_PERIOD 	250000   	/*  = .25s 	Blinking items 			*/
 #define PERIODIC_TASK3_PERIOD 	15000000   	/*  = 15s 	Writes items 			*/
 
@@ -52,11 +52,19 @@ uint8_t recordingSD = 0;
 /* GLOBAL */
 extern uint32_t global_val[5];
 extern AdcDataType adcbuffer[BUFFER_SIZE];
+extern uint8_t adcvalue[3];
 
 /* MENU ITEMS */
-menu_t PPAL, VIS, PAC, CONF, CAL1, CAL2, CAL3, CAL4;
+menu_t PPAL, VIS, PAC, CONF, CALFIRST, CALSECOND, CALTHIRD, CALFORTH;
 menu_t *currMenu;
 menuItem_t *currItem;
+
+volatile uint8_t bluetoothSt = 2; 
+/*
+0 = NO CONNECTION
+1 = CONNECTED NOT TRANSMITTING
+2 = CONNECTED AND TRANSMITTING
+ */
 
 void setup(void){
 	/* READ CONFIG FROM EEPROM */
@@ -98,7 +106,7 @@ void setup(void){
 	PPAL.item[0].nextMenu 	= &VIS;		// CREA UN BOTON QUE CUANDO LO APRETE PASE A VISUALIZACION
 	PPAL.item[1].nextMenu 	= &PAC;
 	PPAL.item[2].nextMenu 	= &CONF;
-	PPAL.item[3].nextMenu 	= &CAL1;
+	PPAL.item[3].nextMenu 	= &CALFIRST;
 	PPAL.items_number		= 4;
 
 	VIS.display_header				= &menu_visualizacion_header;
@@ -143,34 +151,35 @@ void setup(void){
 	CONF.item[1].value_id			= FREC;
 	CONF.item[2].value_id			= MODE;
 	CONF.item[0].value_limit 		= 100;
-	CONF.item[1].value_limit 		= 11;
+	CONF.item[1].value_limit 		= 51;
 	CONF.item[2].value_limit 		= 2;
 	CONF.item[3].doAction 			= &eeprom_write;
 	CONF.items_number				= 5;
 
-	CAL1.display_header				= &menu_calibracion_step1_header;
-	CAL1.display_option				= &menu_calibracion_option;
-	CAL1.item[0].nextMenu 			= &CAL2;
-	CAL1.item[1].nextMenu 			= &PPAL;
-	CAL1.items_number				= 2;
+	CALFIRST.display_header			= &menu_calibracion_step1_header;
+	CALFIRST.display_option			= &menu_calibracion_option;
+	CALFIRST.item[0].nextMenu 		= &CALSECOND;
+	CALFIRST.item[1].nextMenu 		= &PPAL;
+	CALFIRST.items_number			= 2;
 
-	CAL2.display_header				= &menu_calibracion_step2_header;
-	CAL2.display_option				= &menu_calibracion_option;
-	CAL2.item[0].nextMenu 			= &CAL3;
-	CAL2.item[1].nextMenu 			= &PPAL;
-	CAL2.items_number				= 2;
+	CALSECOND.display_header		= &menu_calibracion_step2_header;
+	CALSECOND.display_option		= &menu_calibracion_option;
+	CALSECOND.item[0].nextMenu 		= &CALTHIRD;
+	CALSECOND.item[1].nextMenu 		= &PPAL;
+	CALSECOND.items_number			= 2;
 
-	CAL3.display_header				= &menu_calibracion_step3_header;
-	CAL3.display_option				= &menu_calibracion_option;
-	CAL3.item[0].nextMenu 			= &CAL4;
-	CAL3.item[1].nextMenu 			= &PPAL;
-	CAL3.items_number				= 2;
+	CALTHIRD.display_header			= &menu_calibracion_step3_header;
+	CALTHIRD.display_option			= &menu_calibracion_option;
+	CALTHIRD.item[0].nextMenu 		= &CALFORTH;
+	CALTHIRD.item[1].nextMenu 		= &PPAL;
+	CALTHIRD.items_number			= 2;
 
-	CAL4.display_header				= &menu_calibracion_step4_header;
-	CAL4.display_option				= &menu_calibracion_option;
-	CAL4.item[0].nextMenu 			= &PPAL;
-	CAL4.item[1].nextMenu 			= &PPAL;
-	CAL4.items_number				= 2;
+	CALFORTH.display_header			= &menu_calibracion_step4_header;
+	CALFORTH.display_option			= &menu_calibracion_option;
+	CALFORTH.item[0].nextMenu 		= &PPAL;
+	CALFORTH.item[1].nextMenu 		= &PPAL;
+	CALFORTH.items_number			= 2;
+	CALFORTH.item[0].doAction 	    = &setTARE;
 
 	currMenu = &PPAL;
 	currItem = &currMenu->item[0];
@@ -185,7 +194,7 @@ void setup(void){
 	upperlimit = currMenu->items_number;
 	
 	batteryStatus(0);
-	bluetoothStatus(0);	
+	bluetoothStatus(bluetoothSt);	
 }
 
 void loop(void){
@@ -222,7 +231,7 @@ void loop(void){
 			currMenu -> display_option(index);
 			if (currMenu -> display_fields != NULL ) currMenu -> display_fields();	
 			batteryStatus(0);
-			bluetoothStatus(0);
+			bluetoothStatus(bluetoothSt);
 			/* SET ENCODER UPPER LIMIT */
 			upperlimit = currMenu -> items_number;
 			encoder_count = index;
@@ -293,7 +302,7 @@ void loop(void){
 		******************************/
 		checkBTstatus(); 
 		batteryStatus(0);
-		bluetoothStatus(0);
+		bluetoothStatus(bluetoothSt);
 		/******************************/
 		//Serial.println("EVENT: PERIODIC TASK 1.");
 		flag_periodic_task1 = false;
@@ -328,11 +337,13 @@ void loop(void){
  	
  	/* PERIODIC TASK 4 EVENT */
 	if(flag_periodic_task4){
+		if (currMenu == &VIS)
+			menu_visualizacion_signal( ((*(AdcDataType *)adcvalue) & 0x00FFFFFF ), false);
 		flag_periodic_task4 = false;
 	}
 
 	/* SERIAL DATA FROM BT EVENT */
-	if (Serial.available() > 0){
+	while (Serial.available() > 0){
 	 	// digitalWrite(pinLED1, HIGH);
 		/******************************
 		- PROCCESS RECEIVED DATA FROM
@@ -458,7 +469,6 @@ void eeprom_write(){
 
 // Setea la bandera para grabar en la SD
 void setFlagRecordingSD(){
-
 	recordingSD = 1;
 }
 

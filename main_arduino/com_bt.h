@@ -18,7 +18,7 @@
 #define ACKNOWLODGE_BYTE 	0xCC
 #define MAX_FRAME_SIZE		7
 #define MIN_FRAME_SIZE		4
-#define TIMEOUT_MS			100
+#define TIMEOUT_MS			500
 
 /************************************************
  *  		TYPEDEF SECTION
@@ -46,20 +46,26 @@ typedef enum e_UartCmdId{
 	SEND_CONFIG,		// envio dato 	espero rta de tipo ack
 	SEND_ACK,			// envio 		no espero rta
 	SEND_ADC_MEASURE,	// recibo dato 	envio ack
+	CHECK_CONNECT,	// recibo dato 	envio ack
+	SET_TARE,	// recibo dato 	envio ack
 }e_UartCmdId;
 
 
-typedef enum e_UartStates{
-	IDLE,
-	IDLE_WAITING,
+typedef enum e_UartRxStates{
+	IDLERx,
 	RECEIVING_PACKET,
-	PROCESSING_PACKET,
+}e_UartRxStates;
+
+typedef enum e_UartTxStates{
+	IDLETx,
 	SENDING_PACKET,
-}e_UartStates;
+	WAITING,
+}e_UartTxStates;
 
 typedef struct{
-	e_UartCmdId		currUartCMD		= NO_CMD;
-	e_UartStates 	currUartSTATE 	= IDLE;
+	e_UartCmdId		currUartCMD		    = NO_CMD;
+	e_UartRxStates 	currUartRxSTATE 	= IDLERx;
+	e_UartTxStates 	currUartTxSTATE 	= IDLETx;
 }t_UartStateMachine;	
 
 /************************************************
@@ -67,7 +73,7 @@ typedef struct{
  ***********************************************/
 extern HardwareSerial Serial;
 extern uint32_t global_val[5];
-
+extern volatile uint8_t bluetoothSt; 
 
 /************************************************
  *   		FUNCTIONS DECLARATION
@@ -99,6 +105,7 @@ void rxUartStateMachine(uint8_t ucReceivedByte);
 void txUartStateMachine();
 
 void checkBTstatus();
+void setTARE();
 
 #endif
 

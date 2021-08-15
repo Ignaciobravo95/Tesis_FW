@@ -15,7 +15,7 @@
 #define pinLED1 7 // CPU state
 #define TIMER0_PERIOD		  	1000	 	/*  1ms */	
 #define PERIODIC_TASK1_PERIOD 	100000	/*  Check battery and stuff */
-#define PERIODIC_TASK2_PERIOD 	100000   	/*  Send ADC MEASURE  */
+#define PERIODIC_TASK2_PERIOD 	10000   	/*  Send ADC MEASURE  */
 
 /************************************************
  *   		FUNCTIONS DECLARATION
@@ -40,6 +40,12 @@ HX711 LoadCell;						/* LoadCell object, used in bt comm aswell*/
 uint8_t  value_frec = 0;			/* DR: 0 - 10 */
 uint8_t  value_mode = 0;			/* DR: 0 - 1 */
 
+volatile uint8_t bluetoothSt    = 2; 
+/*
+0 = NO CONNECTION
+1 = CONNECTED NOT TRANSMITTING
+2 = CONNECTED AND TRANSMITTING
+*/
 
 void setup(void){
 	/* READ CONFIG FROM EEPROM */
@@ -96,17 +102,20 @@ void loop(void){
 		/******************************
 		- BLINK IF ANY BLINKING ITEMS 
 		******************************/
-		sendADCValue();
+		if (bluetoothSt==0)
+			sendADCValue();
 		/******************************/
-    // float tmp;
-    //tmp = LoadCell.get_value(20);
-		//Serial.println((tmp > 0) ? (uint32_t)tmp : 0);
+    	uint32_t tmp;
+    	LoadCell.set_offset(0);
+    	tmp = (uint32_t) LoadCell.get_value(1);
+    	tmp = tmp >> 16;
+		Serial.println( tmp );
 		//Serial.println("EVENT: PERIODIC TASK 2.");
 		flag_periodic_task2 = false;
 	}
 
 	/* SERIAL DATA FROM BT EVENT */
-	if (Serial.available() > 0) {
+	while (Serial.available() > 0) {
 	 	digitalWrite(pinLED1, HIGH);
 		/******************************
 		- PROCCESS RECEIVED DATA FROM

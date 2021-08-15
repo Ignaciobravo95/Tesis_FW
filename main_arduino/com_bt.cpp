@@ -20,6 +20,7 @@ uint8_t tail = 0;
 uint8_t head = 0;
 
 uint8_t frec, mode;
+uint8_t adcvalue[3] = {0,0,0};
 
 
 uint32_t timeout = TIMEOUT_MS; uint32_t NERRORES = 0;
@@ -45,91 +46,43 @@ e_UartCmdId popCMD(){
 	return aux;
 }
 
-void pushADC(AdcDataType *ptr){
-	uint8_t i;
-	adcbuffer[head++] = ( *ptr & 0x00FFFFFF );
-	head = head % BUFFER_SIZE;
-}
-
 e_UartErrors processFrame(){
-	uint8_t l = 0, i = 0;
- 	uint8_t adcvalue[3] = {0,0,0};
-
  	if (waiting_ans){
- 		waiting_ans	= false;
 		switch ( uartSM.currUartCMD ) {	/* Check last CMD sent */  
-			case GET_CONFIG:
-				/* ESPERO SEND CONFIG */
-				if (frame_rx[CMDID] == SEND_CONFIG){
-			    	if (frame_rx[LENGTH] == 2){ // length 2 
-			    		frec = frame_rx[DATA0];
-			    		mode = frame_rx[DATA1];
-			    		pushCMD(SEND_CONFIG);
-			    		pushCMD(SEND_ACK);
-			    		return NO_ERROR;
-			    	}
-			    	else{
-			    		return WRONG_ANSWER;
-			    	}
-			    }
-			    else{
-			    	return WRONG_ANSWER;
-			    }	
-			break;   
-
-		    case SEND_CONFIG:
-		    	/* ESPERO ACK*/
-		    	if (frame_rx[CMDID] == SEND_ACK){
-			    	if (frame_rx[LENGTH] == 1){ // length 2 
-			    		if (frame_rx[DATA0] == ACKNOWLODGE_BYTE)
-			    		{
-			    			return NO_ERROR;
-			    		}
-			    		else
-			    		{
-			    			return WRONG_ACK;
-			    		}
-			    	}
-			    	else{
-			    		return WRONG_ANSWER;
-			    	}
-			    }
-			    else{
-			    	return WRONG_ANSWER;
-			    }
+		    case CHECK_CONNECT:
+		     	/* ESPERO ACK*/
+				if (frame_rx[CMDID] == SEND_ACK)
+				{
+					if (frame_rx[LENGTH] == 1)
+					{ 
+						if (frame_rx[DATA0] == ACKNOWLODGE_BYTE)
+						{
+							waiting_ans = 0;
+							bluetoothSt = 0;
+							uartSM.currUartTxSTATE	= IDLETx;
+							return NO_ERROR;
+						}
+					}
+				}
+				return NO_ERROR;
 		    break;
 
 		    default:
-		    	return WRONG_ANSWER;
+		    	return NO_ERROR;
 		    break;
 		}
  	}
  	else{ 
 		switch ( frame_rx[CMDID] ){
 			case SEND_ADC_MEASURE:
-	 			l = frame_rx[LENGTH];
-
-	 			if (sizeof(AdcDataType) >=3){
-	 				if (l != 3)
-	 					return WRONG_DATA;          			
-            	}
-            	else if (sizeof(AdcDataType) == 2){
-            		if (l == 2)
-	 					return WRONG_DATA;          			
-            	}
- 			
-				for(i = DATA0; i < DATA0+l ; i++){
+				for(uint8_t i = DATA0; i < DATA0+ frame_rx[LENGTH] ; i++){
 					adcvalue[i-DATA0] = frame_rx[i];
 				}
-				pushADC((AdcDataType *)adcvalue);
-				pushCMD(SEND_ACK);				
-				if (currMenu == &VIS)
-						menu_visualizacion_signal(  (*( AdcDataType *)adcvalue & 0x00FFFFFF ) , false);
 				return NO_ERROR;
-	 		break;
+			break;
 
 	 		default:
-	 			return WRONG_DATA;
+	 			return NO_ERROR;
 	 		break;
 		}
  	}
@@ -137,7 +90,9 @@ e_UartErrors processFrame(){
 
 void reset_state_machine(){
 	waiting_ans = 0;
-	uartSM.currUartSTATE	= IDLE;
+	uartSM.currUartTxSTATE	= IDLETx;
+	uartSM.currUartRxSTATE	= IDLERx;
+	uartSM.currUartCMD	    = NO_CMD;
 	timeout 				= TIMEOUT_MS;
 }
 
@@ -145,7 +100,11 @@ void reset_state_machine(){
  *   		FUNCTIONS DEFINITION
  ***********************************************/
 void checkBTstatus(){
-	pushCMD(GET_CONFIG);
+	pushCMD(CHECK_CONNECT);
+}
+
+void setTARE(){
+	pushCMD(SET_TARE);
 }
 
 void txUartStateMachine(){
@@ -155,6 +114,7 @@ void txUartStateMachine(){
 	if (waiting_ans){
 		if (timeout == 0){
 			reset_state_machine();
+			bluetoothSt = 0;
 			NERRORES++;
 		}
 		else{
@@ -162,38 +122,26 @@ void txUartStateMachine(){
 		}
 	}
 
-	switch ( uartSM.currUartSTATE ){
-	    case IDLE:
+	switch ( uartSM.currUartTxSTATE ){
+	    case IDLETx:
 			uartSM.currUartCMD = popCMD();		// POP FIRS IN THE LIST
-	      	switch ( uartSM.currUartCMD ){
-	        	case GET_CONFIG:
+	      	switch ( uartSM.currUartCMD ){	          	
+	          	case CHECK_CONNECT:
 	          		frame_tx[START] 	= START_BYTE; 	// START BYTE
 	          		frame_tx[LENGTH] 	= 0;			// LENGTH PAYLOAD - NO DATA SENT
-	          		frame_tx[CMDID] 	= GET_CONFIG;  	// COMAND ID
-	          		frame_tx[CMDID+1] 	= STOP_BYTE;	// STOP BYTE
+	          		frame_tx[CMDID] 	= CHECK_CONNECT;  	// COMAND ID
+	          		frame_tx[CMDID+1]   = STOP_BYTE;	// STOP BYTE
 
-	          		uartSM.currUartSTATE = SENDING_PACKET; 
-	         	break;
-	          
-	          	case SEND_CONFIG:
-	           		frame_tx[START] 	= START_BYTE; 	// START BYTE
-	          		frame_tx[LENGTH] 	= 2;			// LENGTH PAYLOAD - FREC + MODE
-	          		frame_tx[CMDID] 	= SEND_CONFIG; 	// COMAND ID
-	          		frame_tx[DATA0] 	= global_val[FREC];	// PAYLOAD
-	          		frame_tx[DATA1] 	= global_val[MODE];	//
-	          		frame_tx[DATA1+1]	= STOP_BYTE;	// STOP BYTE
-
-	          		uartSM.currUartSTATE = SENDING_PACKET;		
+	          		uartSM.currUartTxSTATE = SENDING_PACKET; 	
 	            break;
-	          	
-	          	case SEND_ACK:
-	          		frame_tx[START] 	= START_BYTE; 	// START BYTE
-	          		frame_tx[LENGTH] 	= 1;			// LENGTH PAYLOAD - NO DATA SENT
-	          		frame_tx[CMDID] 	= SEND_ACK;  	// COMAND ID
-	          		frame_tx[DATA0]		= ACKNOWLODGE_BYTE;
-	          		frame_tx[DATA0+1]	= STOP_BYTE;	// STOP BYTE
 
-	          		uartSM.currUartSTATE = SENDING_PACKET; 	
+	            case SET_TARE:
+	          		frame_tx[START] 	= START_BYTE; 	// START BYTE
+	          		frame_tx[LENGTH] 	= 0;			// LENGTH PAYLOAD - NO DATA SENT
+	          		frame_tx[CMDID] 	= SET_TARE;  	// COMAND ID
+	          		frame_tx[CMDID+1]   = STOP_BYTE;	// STOP BYTE
+
+	          		uartSM.currUartTxSTATE = SENDING_PACKET; 	
 	            break;
 
 	          	default: 
@@ -206,21 +154,19 @@ void txUartStateMachine(){
 	    	for(i = 0; i < MIN_FRAME_SIZE + frame_tx[LENGTH] ; i++)
 	    		Serial.write(frame_tx[i]);
 	    	timeout = TIMEOUT_MS;
-	    	if (uartSM.currUartCMD == SEND_ACK ){
-	    		uartSM.currUartSTATE = IDLE;
+	    	if (uartSM.currUartCMD == CHECK_CONNECT ){
+	    		waiting_ans = true;
+	    		uartSM.currUartTxSTATE = WAITING;
 	    	}
 	    	else{
-	    		waiting_ans = true;
-	    		uartSM.currUartSTATE = IDLE_WAITING;
+	    		uartSM.currUartTxSTATE = IDLETx;
 	    	}	
 	    break;
-	    
-	    case PROCESSING_PACKET:
-	    	error = processFrame();
-			if (error != NO_ERROR) NERRORES++;
-			uartSM.currUartSTATE = IDLE;	
-	    break;
 
+	    case WAITING:
+	    	uartSM.currUartTxSTATE = WAITING;
+	    break;
+	    
 	    default:
 	    break;
 	}
@@ -229,25 +175,26 @@ void txUartStateMachine(){
 void rxUartStateMachine(uint8_t ucReceived){
 	static uint8_t nByte = 0;
 		
-	switch( uartSM.currUartSTATE ){
-		case IDLE:
-		case IDLE_WAITING:
+	switch( uartSM.currUartRxSTATE ){
+		case IDLERx:
 			nByte = 0;
 			if (ucReceived == START_BYTE){
 				frame_rx[nByte++] = ucReceived;
-				uartSM.currUartSTATE = RECEIVING_PACKET;
+				uartSM.currUartRxSTATE = RECEIVING_PACKET;
 			}
 		break;
 
 	 	case RECEIVING_PACKET:
 	 		frame_rx[nByte++] = ucReceived;		
 			if (ucReceived == STOP_BYTE){ 
-				uartSM.currUartSTATE = PROCESSING_PACKET;
+				if (processFrame() != NO_ERROR) 
+					NERRORES++;
+				uartSM.currUartRxSTATE = IDLERx;
 				nByte = 0;
 			}
 			else if (nByte >= MAX_FRAME_SIZE){
 				NERRORES++;
-				uartSM.currUartSTATE = IDLE;
+				uartSM.currUartRxSTATE = IDLERx;
 				nByte = 0;
 			}	
 		break;

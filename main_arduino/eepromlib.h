@@ -23,7 +23,7 @@ typedef enum add{
  ***********************************************/
 #define DEFAULT_ID		 	12345
 #define DEFAULT_TH			55
-#define DEFAULT_FREC		5
+#define DEFAULT_FREC		10
 #define DEFAULT_MODE		0
 #define DEFAULT_BUJIA		8
 
