@@ -4,7 +4,6 @@
 /************************************************
  *  		   INCLUDES SECTION
  ***********************************************/
-//#include <Stdint.h>				
 #include <avr/pgmspace.h>
 /************************************************
  *  		TYPEDEF SECTION
@@ -13,6 +12,8 @@
 /************************************************
  *   		DEFINES SECTION
  ***********************************************/
+#define SDWRITEBUFFER 512
+#define chipSelectSD 11
 
 /************************************************
  *   		GLOBAL DATA SECTION
@@ -33,7 +34,8 @@
  *
  * @return <Add Return Informaiton here>
  */
-void function();
+int initSDroutine(uint32_t BUJIA, uint32_t ID);
+void writeSD();
 
 
 #endif
