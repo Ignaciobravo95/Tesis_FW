@@ -363,8 +363,6 @@ void loop(void){
 				else{
 					if (SDbufferindex<SDWRITEBUFFER){
 						/* write data to buffer */
-						Serial.println(SDbufferindex);
-						Serial.println(tmp);
 						bufferSD[SDbufferindex++] = tmp;
 					}
 					else{

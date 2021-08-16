@@ -19,7 +19,6 @@ uint8_t adc_values[512];
  ***********************************************/
 int initSDroutine(uint32_t BUJIA, uint32_t ID){
 	/* INIT SD */
-	dataFile.close();
 	if (!SD.begin(chipSelectSD)) {
     	return 1;
   	}
@@ -38,22 +37,17 @@ int initSDroutine(uint32_t BUJIA, uint32_t ID){
 		tmp = dir + "/B" + String(BUJIA) + "_M" + String(measurment_index) + ".csv";   
 	}
 	file_name = tmp;
-
-	/* GENERATE DATAFILE TO WRITE TO */
-	dataFile = SD.open(file_name, FILE_WRITE);
-
-
-	for (int i =0; i <512;i++){
-    	adc_values[i] = random(0,512);
-  	}
   	
 	return 0;
 }
 
 
 void writeSD(){
+	/* GENERATE DATAFILE TO WRITE TO */
+	dataFile = SD.open(file_name, FILE_WRITE);
 	for (unsigned int i= 0; i < SDWRITEBUFFER; i++){
-     	dataFile.print(adc_values[i]);
+     	dataFile.print(bufferSD[i]);
      	dataFile.println(",");
     }
+    dataFile.close();
 }
