@@ -5,6 +5,7 @@
 #include "com_bt.h"
 #include "eepromlib.h"
 #include "extra.h"
+#include "sdFiles.h"
 #include <math.h>
 #include <TimerOne.h>
 
@@ -15,6 +16,7 @@
 #define pinDT  	20  // DT  del encoder
 #define pinCLK  19  // DT  del encoder
 #define pinLED1 13 // CPU state
+
 #define TIMER0_PERIOD		  	1000	 	/*  = 1ms */	
 #define PERIODIC_TASK1_PERIOD 	2500000 	/*  = 10s	Check battery and bt	*/
 #define PERIODIC_TASK2_PERIOD 	250000   	/*  = .25s 	Blinking items 			*/
@@ -48,10 +50,13 @@ uint32_t PERIODIC_TASK4_PERIOD = 0;
 uint32_t task4_count_value = 0,task3_count_value = 0, task2_count_value = 0, task1_count_value = 0;
 uint16_t upperlimit = 0;
 uint8_t recordingSD = 0;
+uint8_t bufferSDfull = 0;
+uint8_t initSD = 0;
 
 /* GLOBAL */
 extern uint32_t global_val[5];
 extern AdcDataType adcbuffer[BUFFER_SIZE];
+extern AdcDataType bufferSD[SDWRITEBUFFER];
 extern uint8_t adcvalue[3];
 
 /* MENU ITEMS */
@@ -204,6 +209,8 @@ void loop(void){
 	static uint8_t nDigit = 1;			// Number of digits 
 	static uint16_t encoder_count = 0;	// Rotative encoder counter to switch between items or edit values
 	static uint16_t encoder_mode = 0;  	// Encoder mode - 0 switch items - 1 modifie value
+	static uint16_t SDbufferindex = 0;
+
 	
 	/* Main LOOP */
 	/* BUTTON PRESSED EVENT */
@@ -337,9 +344,45 @@ void loop(void){
  	
  	/* PERIODIC TASK 4 EVENT */
 	if(flag_periodic_task4){
-		if (currMenu == &VIS)
-			menu_visualizacion_signal( ((*(AdcDataType *)adcvalue) & 0x00FFFFFF ), false);
+		if (currMenu == &VIS){
+			uint32_t tmp = ((*(AdcDataType *)adcvalue) & 0x00FFFFFF );
+			menu_visualizacion_signal( tmp , false);
+			if (recordingSD){
+				/* Chequeo si la tarjeta esta inicializada */
+				if (initSD==0){
+					/* Corro la rutina de inicializacion de la SD */
+					if (!initSDroutine(global_val[BUJIA],global_val[IDPAC])){
+						initSD = 1;
+						SDbufferindex = 0;
+					}
+					else{
+						recordingSD = 0; 
+					}
+				}
+				/* Rellenamos el buffer con los mismos datos que mostramos en pantalla */
+				else{
+					if (SDbufferindex<SDWRITEBUFFER){
+						/* write data to buffer */
+						Serial.println(SDbufferindex);
+						Serial.println(tmp);
+						bufferSD[SDbufferindex++] = tmp;
+					}
+					else{
+						bufferSDfull = 1;
+					} 
+				}
+
+			}
+		}
 		flag_periodic_task4 = false;
+	}
+
+
+	/* WRITE DATA TO SD IF BUFFER IS FULL */
+	if (bufferSDfull){
+		writeSD();
+		bufferSDfull = 0;
+		SDbufferindex = 0;
 	}
 
 	/* SERIAL DATA FROM BT EVENT */
@@ -475,6 +518,7 @@ void setFlagRecordingSD(){
 // Setea la bandera dejar de grabar en la SD
 void clearFlagRecordingSD(){
 	recordingSD = 0;
+	initSD = 0;
 	blinkREC(true);
 }
 
