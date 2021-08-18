@@ -511,10 +511,14 @@ void eeprom_write(){
 // Setea la bandera para grabar en la SD
 void setFlagRecordingSD(){
 	recordingSD = 1;
+	VIS.items_number = 2;
+	upperlimit = currMenu -> items_number;		
 }
 
 // Setea la bandera dejar de grabar en la SD
 void clearFlagRecordingSD(){
+	VIS.items_number = 4;
+	upperlimit = currMenu -> items_number;		
 	recordingSD = 0;
 	initSD = 0;
 	blinkREC(true);

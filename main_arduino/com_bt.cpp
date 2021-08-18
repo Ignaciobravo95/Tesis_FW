@@ -114,7 +114,7 @@ void txUartStateMachine(){
 	if (waiting_ans){
 		if (timeout == 0){
 			reset_state_machine();
-			bluetoothSt = 0;
+			bluetoothSt = 2;
 			NERRORES++;
 		}
 		else{
