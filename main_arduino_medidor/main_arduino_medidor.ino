@@ -66,7 +66,8 @@ void setup(void){
 	/* INIT HX711 OBJECT */
 	LoadCell.begin(DOUT, CLK);
   	LoadCell.set_scale(); //La escala por defecto es 1
-  	LoadCell.tare();  //El peso actual es considerado Tara.
+  	// LoadCell.tare();  //El peso actual es considerado Tara.
+  	LoadCell.set_offset(0);
 
   	/* GPIO INIT */
   	pinMode(pinSW ,INPUT);
@@ -105,11 +106,11 @@ void loop(void){
 		if (bluetoothSt==0)
 			sendADCValue();
 		/******************************/
-    	uint32_t tmp;
-    	LoadCell.set_offset(0);
-    	tmp = (uint32_t) LoadCell.get_value(1);
-    	tmp = tmp >> 16;
-		Serial.println( tmp );
+    	// uint32_t tmp;
+  //   	LoadCell.set_offset(0);
+  //   	tmp = (uint32_t) LoadCell.get_value(1);
+  //   	tmp = tmp >> 16;
+		// Serial.println( tmp );
 		//Serial.println("EVENT: PERIODIC TASK 2.");
 		flag_periodic_task2 = false;
 	}
