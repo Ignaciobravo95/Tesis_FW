@@ -16,16 +16,20 @@ typedef enum add{
 	TH_ADDR		=		0x08,
 	FREC_ADDR	=		0x0C,
 	MODE_ADDR 	=		0x10,
+	OFFSET_ADDR =		0x14,
+	SLOPE_ADDR 	=		0x18,
 }e_eepromAddr;
 
 /************************************************
  *   		DEFINES SECTION
  ***********************************************/
-#define DEFAULT_ID		 	12345
-#define DEFAULT_TH			55
+#define DEFAULT_ID		 	1
+#define DEFAULT_TH			5
 #define DEFAULT_FREC		10
 #define DEFAULT_MODE		0
 #define DEFAULT_BUJIA		8
+#define DEFAULT_OFFSET		0
+#define DEFAULT_SLOPE		1.0
 
 /************************************************
  *   		GLOBAL DATA SECTION
@@ -103,6 +107,8 @@ void writeEEPROM_bujia(uint8_t val);
  * @return <Add Return Informaiton here>
  */
 void writeEEPROM_id(uint16_t val);
+void writeEEPROM_offset(uint32_t val);
+void writeEEPROM_slope(float val);
 
 /**
  * @brief <Add Brief Description of Function Here>
@@ -173,6 +179,8 @@ uint8_t getEEPROM_bujia();
  * @return <Add Return Informaiton here>
  */
 uint16_t getEEPROM_id();
+uint32_t getEEPROM_offset();
+float getEEPROM_slope();
 
 
 #endif

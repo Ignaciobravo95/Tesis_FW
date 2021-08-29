@@ -61,7 +61,7 @@ extern float bufferSD[SDWRITEBUFFER];
 extern uint8_t adcvalue[3];
 
 volatile uint32_t offset = 0;
-volatile float slope  = 1;
+volatile float slope  = 1.0;
 
 /* MENU ITEMS */
 menu_t PPAL, VIS, PAC, CONF, CALFIRST, CALSECOND, CALTHIRD, CALFORTH;
@@ -82,6 +82,8 @@ void setup(void){
 	global_val[FREC] 	= getEEPROM_frec();
 	global_val[MODE] 	= getEEPROM_mode();
 	global_val[IDPAC] 	= getEEPROM_id();
+	offset 			 	= getEEPROM_offset();
+	slope 			 	= getEEPROM_slope();
 
 	/* TIMER INIT */
 	Timer1.initialize(TIMER0_PERIOD); /* Value in microseconds? */
@@ -539,6 +541,7 @@ void setOFFSET(){
 	for (int i = 0; i<500; i++)
 	 	accum += ((*(AdcDataType *)adcvalue) & 0x00FFFFFF );
 	offset = accum/500;
+	writeEEPROM_offset(offset);
 }
 
 void setSLOPE(){
@@ -547,6 +550,7 @@ void setSLOPE(){
 	 	accum += ((*(AdcDataType *)adcvalue) & 0x00FFFFFF );
 	accum = accum / 500; 	
 	slope = 1/((accum - offset) / 1.44);
+	writeEEPROM_slope(slope);
 }
 
 
