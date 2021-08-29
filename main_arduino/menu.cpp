@@ -176,7 +176,7 @@ void menu_calibracion_step2_header(){
 	tft.setTextColor(WHITE);  
 	tft.setCursor(60,  55); tft.print("CALIBRACION PASO 2:");
 	tft.setCursor(40,  95); tft.print("->Colocar patron de");
-	tft.setCursor(40, 115); tft.print(" 2.5kg y presionar");
+	tft.setCursor(40, 115); tft.print(" 1.44kg y presionar");
 	tft.setCursor(40, 135); tft.print(" aceptar");
 }
 
@@ -328,18 +328,20 @@ void menu_pacientes_fields(){
 void menu_visualizacion_signal(uint32_t x, uint8_t reset){
 	static uint8_t sample_number = 5, last_value = 188;
 	uint8_t new_value;
-	float presion = x * 2.0 / 2000000.0 ;
+	float presion = (x - offset)*slope;// * 5.0 / 16000000.0 ;
+	if (presion > 5.0)
+		presion = 0;
 
 	/* LECTURA NUMBER */
 	tft.fillRect(195,76,96,35,BLACK);
 
 	if (!reset){
-		if(presion > 1.2){
+		if(presion > 1.8){
 		    tft.setTextColor(RED); 
-		    tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,1);
+		    tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,2);
 		}else{
 		    tft.setTextColor(WHITE); 
-		    tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,1);
+		    tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,2);
 		}
 		/* LECTURA VS SAMPLE */
 		sample_number++;
@@ -348,7 +350,11 @@ void menu_visualizacion_signal(uint32_t x, uint8_t reset){
 			tft.fillRect(6, 19, 178, 170, BLACK);
 		}
 
-		new_value = map(x , 0 ,2000000, 188, 18);
+		new_value = map(x-offset , 0 ,1.5e6, 188, 18);
+		if (new_value>=188)
+			new_value = 188;
+		else if (new_value<18)
+			new_value = 18;
 		tft.drawPixel(sample_number, new_value, WHITE);
 		tft.drawLine(sample_number-1, last_value, sample_number, new_value, WHITE);
 

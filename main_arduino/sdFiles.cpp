@@ -9,10 +9,9 @@
 /************************************************
  *			GLOBAL VARIABLE SECTION
  ***********************************************/
-AdcDataType bufferSD[SDWRITEBUFFER];
+float bufferSD[SDWRITEBUFFER];
 String file_name;
 File dataFile;
-uint8_t adc_values[512];
 
 /************************************************
  *   		PRIVATE FUNCTION DEFINITION

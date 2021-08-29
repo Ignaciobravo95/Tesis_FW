@@ -71,6 +71,9 @@ typedef struct menu_page{
  *   		GLOBAL DATA SECTION
  ***********************************************/
 extern uint32_t global_val[5];
+volatile extern uint32_t offset;
+volatile extern float slope;
+
 
 /************************************************
  *   		FUNCTIONS DECLARATION

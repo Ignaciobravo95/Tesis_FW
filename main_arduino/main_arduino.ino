@@ -29,6 +29,8 @@
 void eeprom_write();
 void clearFlagRecordingSD();
 void setFlagRecordingSD();
+void setOFFSET();
+void setSLOPE();
 
 /************************************************
  *   		GLOBAL DATA SECTION
@@ -55,9 +57,11 @@ uint8_t initSD = 0;
 
 /* GLOBAL */
 extern uint32_t global_val[5];
-extern AdcDataType adcbuffer[BUFFER_SIZE];
-extern AdcDataType bufferSD[SDWRITEBUFFER];
+extern float bufferSD[SDWRITEBUFFER];
 extern uint8_t adcvalue[3];
+
+volatile uint32_t offset = 0;
+volatile float slope  = 1;
 
 /* MENU ITEMS */
 menu_t PPAL, VIS, PAC, CONF, CALFIRST, CALSECOND, CALTHIRD, CALFORTH;
@@ -166,12 +170,14 @@ void setup(void){
 	CALFIRST.item[0].nextMenu 		= &CALSECOND;
 	CALFIRST.item[1].nextMenu 		= &PPAL;
 	CALFIRST.items_number			= 2;
+	CALFIRST.item[0].doAction 		= &setOFFSET;
 
 	CALSECOND.display_header		= &menu_calibracion_step2_header;
 	CALSECOND.display_option		= &menu_calibracion_option;
-	CALSECOND.item[0].nextMenu 		= &CALTHIRD;
+	CALSECOND.item[0].nextMenu 		= &PPAL;
 	CALSECOND.item[1].nextMenu 		= &PPAL;
 	CALSECOND.items_number			= 2;
+	CALSECOND.item[0].doAction 	    = &setSLOPE;
 
 	CALTHIRD.display_header			= &menu_calibracion_step3_header;
 	CALTHIRD.display_option			= &menu_calibracion_option;
@@ -184,7 +190,6 @@ void setup(void){
 	CALFORTH.item[0].nextMenu 		= &PPAL;
 	CALFORTH.item[1].nextMenu 		= &PPAL;
 	CALFORTH.items_number			= 2;
-	CALFORTH.item[0].doAction 	    = &setTARE;
 
 	currMenu = &PPAL;
 	currItem = &currMenu->item[0];
@@ -363,7 +368,10 @@ void loop(void){
 				else{
 					if (SDbufferindex<SDWRITEBUFFER){
 						/* write data to buffer */
-						bufferSD[SDbufferindex++] = tmp;
+						float tmpkg = (tmp - offset)*slope;
+						if (tmpkg > 5.0)
+							tmpkg = 0;
+						bufferSD[SDbufferindex++] = tmpkg;
 					}
 					else{
 						bufferSDfull = 1;
@@ -519,8 +527,26 @@ void setFlagRecordingSD(){
 void clearFlagRecordingSD(){
 	VIS.items_number = 4;
 	upperlimit = currMenu -> items_number;		
+	if(recordingSD==1)
+		writeSD();
 	recordingSD = 0;
 	initSD = 0;
 	blinkREC(true);
 }
+
+void setOFFSET(){
+	uint32_t accum = 0;
+	for (int i = 0; i<500; i++)
+	 	accum += ((*(AdcDataType *)adcvalue) & 0x00FFFFFF );
+	offset = accum/500;
+}
+
+void setSLOPE(){
+	uint32_t accum = 0;
+	for (int i = 0; i<500; i++)
+	 	accum += ((*(AdcDataType *)adcvalue) & 0x00FFFFFF );
+	accum = accum / 500; 	
+	slope = 1/((accum - offset) / 1.44);
+}
+
 
