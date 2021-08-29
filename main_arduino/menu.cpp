@@ -407,6 +407,17 @@ void bluetoothStatus(uint8_t x){
 }
 
 /* EXTRA */
+void blinknoSD(uint8_t force){
+	static uint8_t on = false;
+	if (on && !force ){
+		tft.setCursor(195,40); tft.setTextColor(RED); tft.setTextSize(2); tft.print("NO SD CARD");
+	}
+	else{
+		tft.setCursor(195,40); tft.setTextColor(BLACK); tft.setTextSize(2); tft.print("NO SD CARD");
+	}
+	on = ~on;
+}
+
 void blinkREC(uint8_t force){
 	static uint8_t on = false;
 	tft.setCursor(211,16); tft.setTextColor(RED); tft.setTextSize(1); tft.print("REC.");

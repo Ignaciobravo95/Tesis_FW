@@ -260,6 +260,7 @@ void bluetoothStatus(uint8_t x);
  *
  */
 void blinkREC(uint8_t force);
+void blinknoSD(uint8_t force);
 
 /**
  * @brief <Imprime el menu principal en el display>

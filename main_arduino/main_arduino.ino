@@ -52,6 +52,7 @@ uint32_t PERIODIC_TASK4_PERIOD = 0;
 uint32_t task4_count_value = 0,task3_count_value = 0, task2_count_value = 0, task1_count_value = 0;
 uint16_t upperlimit = 0;
 uint8_t recordingSD = 0;
+uint8_t noSD = 0;
 uint8_t bufferSDfull = 0;
 uint8_t initSD = 0;
 
@@ -330,6 +331,7 @@ void loop(void){
 		******************************/
 		if (currItem -> blinking) currItem -> blinking_function(currItem->tmp_value, false, digit);
 		if (recordingSD) blinkREC(false);
+		if (noSD) blinknoSD(false);
 		/******************************/
 		//Serial.println("EVENT: PERIODIC TASK 2.");
 		flag_periodic_task2 = false;
@@ -360,10 +362,17 @@ void loop(void){
 					/* Corro la rutina de inicializacion de la SD */
 					if (!initSDroutine(global_val[BUJIA],global_val[IDPAC])){
 						initSD = 1;
+						noSD = 0;
 						SDbufferindex = 0;
+						blinknoSD(true);	
 					}
 					else{
-						recordingSD = 0; 
+						VIS.items_number = 4;
+						upperlimit = currMenu -> items_number;		
+						recordingSD = 0;
+						initSD = 0;
+						noSD = 1;
+						blinkREC(true);	
 					}
 				}
 				/* Rellenamos el buffer con los mismos datos que mostramos en pantalla */
@@ -533,7 +542,9 @@ void clearFlagRecordingSD(){
 		writeSD();
 	recordingSD = 0;
 	initSD = 0;
+	noSD = 0;
 	blinkREC(true);
+	blinknoSD(true);
 }
 
 void setOFFSET(){
