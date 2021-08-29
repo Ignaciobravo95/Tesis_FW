@@ -47,7 +47,6 @@ typedef enum e_UartCmdId{
 	SEND_ACK,			// envio 		no espero rta
 	SEND_ADC_MEASURE,	// recibo dato 	envio ack
 	CHECK_CONNECT,	// recibo dato 	envio ack
-	SET_TARE,	// recibo dato 	envio ack
 }e_UartCmdId;
 
 
@@ -105,7 +104,6 @@ void rxUartStateMachine(uint8_t ucReceivedByte);
 void txUartStateMachine();
 
 void checkBTstatus();
-void setTARE();
 
 #endif
 

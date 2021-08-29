@@ -103,10 +103,6 @@ void checkBTstatus(){
 	pushCMD(CHECK_CONNECT);
 }
 
-void setTARE(){
-	pushCMD(SET_TARE);
-}
-
 void txUartStateMachine(){
 	e_UartErrors error;
 	uint8_t i;
@@ -130,15 +126,6 @@ void txUartStateMachine(){
 	          		frame_tx[START] 	= START_BYTE; 	// START BYTE
 	          		frame_tx[LENGTH] 	= 0;			// LENGTH PAYLOAD - NO DATA SENT
 	          		frame_tx[CMDID] 	= CHECK_CONNECT;  	// COMAND ID
-	          		frame_tx[CMDID+1]   = STOP_BYTE;	// STOP BYTE
-
-	          		uartSM.currUartTxSTATE = SENDING_PACKET; 	
-	            break;
-
-	            case SET_TARE:
-	          		frame_tx[START] 	= START_BYTE; 	// START BYTE
-	          		frame_tx[LENGTH] 	= 0;			// LENGTH PAYLOAD - NO DATA SENT
-	          		frame_tx[CMDID] 	= SET_TARE;  	// COMAND ID
 	          		frame_tx[CMDID+1]   = STOP_BYTE;	// STOP BYTE
 
 	          		uartSM.currUartTxSTATE = SENDING_PACKET; 	

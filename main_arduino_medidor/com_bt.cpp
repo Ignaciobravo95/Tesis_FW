@@ -57,15 +57,6 @@ e_UartErrors processFrame(){
 				}
 			break;
 
-			case SET_TARE:
-				/* RESETEO LA TARA */
-				if (frame_rx[LENGTH] == 0)
-				{ 
-					LoadCell.tare();  //El peso actual es considerado Tara.
-					return NO_ERROR;
-				}
-			break;
-
 	 		default:
 	 			return NO_ERROR;
 	 		break;
