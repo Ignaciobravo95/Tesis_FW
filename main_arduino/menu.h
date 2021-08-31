@@ -239,7 +239,7 @@ void menu_pacientes_fields();
  * @param <refresh> <Refresca la pantalla>
  *
  */
-void batteryStatus(uint8_t x);
+void batteryStatus(float x);
 
 /**
  * @brief <Imprime el menu principal en el display>

@@ -16,6 +16,8 @@
 #define pinDT  	20  // DT  del encoder
 #define pinCLK  19  // DT  del encoder
 #define pinLED1 13 // CPU state
+#define ADCEnable 	A1 	// ADC Enable
+#define ADCVoltage 	A0 	// ADC Mesurament
 
 #define TIMER0_PERIOD		  	1000	 	/*  = 1ms */	
 #define PERIODIC_TASK1_PERIOD 	2500000 	/*  = 10s	Check battery and bt	*/
@@ -31,6 +33,7 @@ void clearFlagRecordingSD();
 void setFlagRecordingSD();
 void setOFFSET();
 void setSLOPE();
+float getADCmeasurebase();
 
 /************************************************
  *   		GLOBAL DATA SECTION
@@ -104,8 +107,12 @@ void setup(void){
 	pinMode(pinSW	,INPUT);
 	pinMode(pinCLK 	,INPUT);
 	pinMode(pinDT 	,INPUT);
+	pinMode(ADCEnable ,OUTPUT);
 	// pinMode(pinLED1 ,OUTPUT);
 	// digitalWrite(pinLED1, HIGH);	
+
+	/* SET ANALOG REFERENCE  */
+	analogReference(INTERNAL);
 
 	/* ATTACH INTERRUPTS */
 	attachInterrupt(digitalPinToInterrupt(pinSW),ISR_BUTT_PRESSED,RISING);
@@ -206,7 +213,7 @@ void setup(void){
 	currMenu->display_option(0);
 	upperlimit = currMenu->items_number;
 	
-	batteryStatus(0);
+	batteryStatus(getADCmeasurebase());
 	bluetoothStatus(bluetoothSt);	
 }
 
@@ -245,7 +252,7 @@ void loop(void){
 			currMenu -> display_header();
 			currMenu -> display_option(index);
 			if (currMenu -> display_fields != NULL ) currMenu -> display_fields();	
-			batteryStatus(0);
+			batteryStatus(getADCmeasurebase());
 			bluetoothStatus(bluetoothSt);
 			/* SET ENCODER UPPER LIMIT */
 			upperlimit = currMenu -> items_number;
@@ -316,7 +323,7 @@ void loop(void){
 			- BLUETOOTH STATUS 
 		******************************/
 		checkBTstatus(); 
-		batteryStatus(0);
+		batteryStatus(getADCmeasurebase());
 		bluetoothStatus(bluetoothSt);
 		/******************************/
 		//Serial.println("EVENT: PERIODIC TASK 1.");
@@ -564,4 +571,13 @@ void setSLOPE(){
 	writeEEPROM_slope(slope);
 }
 
+float getADCmeasurebase(){
+	float temp;
+
+	digitalWrite(ADCEnable, HIGH);
+	temp = (analogRead(ADCVoltage)*0.0046);
+	digitalWrite(ADCEnable, LOW);
+
+	return temp;
+}
 

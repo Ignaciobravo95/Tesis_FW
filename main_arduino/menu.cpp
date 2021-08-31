@@ -371,19 +371,19 @@ void menu_visualizacion_signal(uint32_t x, uint8_t reset){
 }
 
 /* STATUS */
-void batteryStatus(uint8_t x){
+void batteryStatus(float x){
 	// Bateria
 	tft.drawRect(285, 4,25,15,YELLOW); 
     tft.drawRect(310, 7, 5, 9,YELLOW);
     tft.drawRect(285, 4, 9,15,YELLOW);
     tft.drawRect(293, 4, 9,15,YELLOW);
 
-	if (x >= 170){
+	if (x >= 4.0){
     	tft.fillRect(286, 5, 7,13,GREEN);  
     	tft.fillRect(294, 5, 7,13,GREEN);
     	tft.fillRect(302, 5, 7,13,GREEN);
   	}
-  	else if (x >= 85){
+  	else if (x >= 3.6){
       	tft.fillRect(286, 5, 7,13,GREEN); 
 		tft.fillRect(294, 5, 7,13,GREEN);
 		tft.fillRect(302, 5, 7,13,BLACK);
