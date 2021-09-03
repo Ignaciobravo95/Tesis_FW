@@ -140,6 +140,7 @@ void menu_calibracion_step1_header();
 void menu_calibracion_step2_header();
 void menu_calibracion_step3_header();
 void menu_calibracion_step4_header();
+void menu_calibracion_step5_header();
 
 /**
  * @brief <Imprime grafico que muestra resalta la opcion seleccionada >

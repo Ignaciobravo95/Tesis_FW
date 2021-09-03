@@ -68,7 +68,7 @@ volatile uint32_t offset = 0;
 volatile float slope  = 1.0;
 
 /* MENU ITEMS */
-menu_t PPAL, VIS, PAC, CONF, CALFIRST, CALSECOND, CALTHIRD, CALFORTH;
+menu_t PPAL, VIS, PAC, CONF, CALFIRST, CALSECOND, CALTHIRD, CALFORTH, CALFIFTH;
 menu_t *currMenu;
 menuItem_t *currItem;
 
@@ -112,7 +112,7 @@ void setup(void){
 	// digitalWrite(pinLED1, HIGH);	
 
 	/* SET ANALOG REFERENCE  */
-	analogReference(INTERNAL);
+	// analogReference(INTERNAL);
 
 	/* ATTACH INTERRUPTS */
 	attachInterrupt(digitalPinToInterrupt(pinSW),ISR_BUTT_PRESSED,RISING);
@@ -184,10 +184,9 @@ void setup(void){
 
 	CALSECOND.display_header		= &menu_calibracion_step2_header;
 	CALSECOND.display_option		= &menu_calibracion_option;
-	CALSECOND.item[0].nextMenu 		= &PPAL;
+	CALSECOND.item[0].nextMenu 		= &CALTHIRD;
 	CALSECOND.item[1].nextMenu 		= &PPAL;
 	CALSECOND.items_number			= 2;
-	CALSECOND.item[0].doAction 	    = &setSLOPE;
 
 	CALTHIRD.display_header			= &menu_calibracion_step3_header;
 	CALTHIRD.display_option			= &menu_calibracion_option;
@@ -197,9 +196,16 @@ void setup(void){
 
 	CALFORTH.display_header			= &menu_calibracion_step4_header;
 	CALFORTH.display_option			= &menu_calibracion_option;
-	CALFORTH.item[0].nextMenu 		= &PPAL;
+	CALFORTH.item[0].nextMenu 		= &CALFIFTH;
 	CALFORTH.item[1].nextMenu 		= &PPAL;
 	CALFORTH.items_number			= 2;
+
+	CALFIFTH.display_header			= &menu_calibracion_step5_header;
+	CALFIFTH.display_option			= &menu_calibracion_option;
+	CALFIFTH.item[0].nextMenu 		= &PPAL;
+	CALFIFTH.item[1].nextMenu 		= &PPAL;
+	CALFIFTH.items_number			= 2;
+	CALFIFTH.item[0].doAction 	    = &setSLOPE;
 
 	currMenu = &PPAL;
 	currItem = &currMenu->item[0];

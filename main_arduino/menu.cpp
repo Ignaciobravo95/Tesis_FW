@@ -176,7 +176,7 @@ void menu_calibracion_step2_header(){
 	tft.setTextColor(WHITE);  
 	tft.setCursor(60,  55); tft.print("CALIBRACION PASO 2:");
 	tft.setCursor(40,  95); tft.print("->Colocar patron de");
-	tft.setCursor(40, 115); tft.print(" 1.44kg y presionar");
+	tft.setCursor(40, 115); tft.print(" 120g y presionar");
 	tft.setCursor(40, 135); tft.print(" aceptar");
 }
 
@@ -194,7 +194,7 @@ void menu_calibracion_step3_header(){
 	tft.setTextColor(WHITE);  
 	tft.setCursor(60,  55); tft.print("CALIBRACION PASO 3:");
 	tft.setCursor(40,  95); tft.print("->Colocar patron de");
-	tft.setCursor(40, 115); tft.print(" 5.0kg y presionar");
+	tft.setCursor(40, 115); tft.print(" 480g y presionar");
 	tft.setCursor(40, 135); tft.print(" aceptar");
 }
 
@@ -210,9 +210,27 @@ void menu_calibracion_step4_header(){
 	tft.setCursor(55,  195); tft.print("ACEPTAR");
 	tft.setCursor(180, 195); tft.print("CANCELAR");
 	tft.setTextColor(WHITE);  
-	tft.setCursor(60,  55); tft.print("CALIBRACION PASO 3:");
+	tft.setCursor(60,  55); tft.print("CALIBRACION PASO 4:");
 	tft.setCursor(40,  95); tft.print("->Colocar patron de");
-	tft.setCursor(40, 115); tft.print(" 1.0kg y presionar");
+	tft.setCursor(40, 115); tft.print(" 960g y presionar");
+	tft.setCursor(40, 135); tft.print(" aceptar");
+}
+
+void menu_calibracion_step5_header(){
+	/* TITLE DRAWING */
+	tft.fillScreen(BLACK); 
+	tft.fillRoundRect(40,  180, 110,  40, 8, RED   );
+	tft.drawRoundRect(40,  180, 110,  40, 8, YELLOW); 
+	tft.fillRoundRect(170, 180, 110,  40, 8, RED   );
+	tft.drawRoundRect(170, 180, 110,  40, 8, YELLOW);
+	tft.setTextSize(2); 
+	tft.setTextColor(BLACK);  
+	tft.setCursor(55,  195); tft.print("ACEPTAR");
+	tft.setCursor(180, 195); tft.print("CANCELAR");
+	tft.setTextColor(WHITE);  
+	tft.setCursor(60,  55); tft.print("CALIBRACION PASO 5:");
+	tft.setCursor(40,  95); tft.print("->Colocar patron de");
+	tft.setCursor(40, 115); tft.print(" 1440g y presionar");
 	tft.setCursor(40, 135); tft.print(" aceptar");
 }
 
