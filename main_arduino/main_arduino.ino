@@ -124,9 +124,8 @@ void setup(void){
 	PPAL.display_option   	= &menu_principal_option;
 	PPAL.item[0].nextMenu 	= &VIS;		// CREA UN BOTON QUE CUANDO LO APRETE PASE A VISUALIZACION
 	PPAL.item[1].nextMenu 	= &PAC;
-	PPAL.item[2].nextMenu 	= &CONF;
-	PPAL.item[3].nextMenu 	= &CALFIRST;
-	PPAL.items_number		= 4;
+	PPAL.item[2].nextMenu 	= &CALFIRST;
+	PPAL.items_number		= 3;
 
 	VIS.display_header				= &menu_visualizacion_header;
 	VIS.display_option				= &menu_visualizacion_option;
@@ -219,7 +218,7 @@ void setup(void){
 	currMenu->display_option(0);
 	upperlimit = currMenu->items_number;
 	
-	batteryStatus(getADCmeasurebase());
+	batteryStatus(4.1,4.1);
 	bluetoothStatus(bluetoothSt);	
 }
 
@@ -258,7 +257,7 @@ void loop(void){
 			currMenu -> display_header();
 			currMenu -> display_option(index);
 			if (currMenu -> display_fields != NULL ) currMenu -> display_fields();	
-			batteryStatus(getADCmeasurebase());
+			batteryStatus(4.1,4.1);
 			bluetoothStatus(bluetoothSt);
 			/* SET ENCODER UPPER LIMIT */
 			upperlimit = currMenu -> items_number;
@@ -329,7 +328,7 @@ void loop(void){
 			- BLUETOOTH STATUS 
 		******************************/
 		checkBTstatus(); 
-		batteryStatus(getADCmeasurebase());
+		batteryStatus(4.1,4.1);
 		bluetoothStatus(bluetoothSt);
 		/******************************/
 		//Serial.println("EVENT: PERIODIC TASK 1.");

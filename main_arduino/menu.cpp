@@ -36,28 +36,24 @@ void init_tft(){
 void menu_principal_header(){
 	/* TITLE DRAWING */
 	tft.fillScreen(BLACK);
-	tft.fillRoundRect(50, 180, 220,  40, 8, RED   );
-	tft.drawRoundRect(50, 180, 220,  40, 8, YELLOW); 
-	tft.fillRoundRect(50, 130, 220,  40, 8, RED   );
-	tft.drawRoundRect(50, 130, 220,  40, 8, YELLOW);  
-	tft.fillRoundRect(50,  80, 220,  40, 8, RED   );   
-	tft.drawRoundRect(50,  80, 220,  40, 8, YELLOW);
-	tft.fillRoundRect(50,  30, 220,  40, 8, RED   );
-	tft.drawRoundRect(50,  30, 220,  40, 8, YELLOW); 
-	tft.setTextSize(2); 
-	// tft.setTextColor(GREEN); 
-	// tft.setCursor(190, 205); tft.print("UTN - FRC");
-	tft.setTextColor(BLACK);  
-	tft.setCursor(90, 195); tft.print("Calibracion");
-	tft.setCursor(82, 145); tft.print("Configuracion");
-	tft.setCursor(70,  95); tft.print("Num. de paciente");
-	tft.setCursor(82,  45); tft.print("Visualizacion");
+	tft.fillRoundRect(50, 150, 220,  40, 8, RED   );
+	tft.drawRoundRect(50, 150, 220,  40, 8, YELLOW);
+	tft.fillRoundRect(50, 100, 220,  40, 8, RED   );
+	tft.drawRoundRect(50, 100, 220,  40, 8, YELLOW);
+	tft.fillRoundRect(50,  50, 220,  40, 8, RED   );
+	tft.drawRoundRect(50,  50, 220,  40, 8, YELLOW);
+	tft.setTextSize(2);
+	tft.setTextColor(GREEN);
+	tft.setCursor(190, 205); tft.print("UTN - FRC");
+	tft.setTextColor(BLACK);
+	tft.setCursor(82, 165); tft.print("Calibracion");
+	tft.setCursor(70, 115); tft.print("Num. de paciente");
+	tft.setCursor(82,  65); tft.print("Visualizacion");
 }
  
 void menu_visualizacion_header(){
 	/* TITLE */
 	tft.fillScreen(BLACK);
-	tft.drawRect(5,3,180,10,YELLOW);                    // Rectangulo para mostrar la presion en forma de barra
 	tft.drawRect(5,18,180,172,YELLOW);                  // Rectangulo para mostrar la evolucion de la presion en el tiempo
 
 	tft.fillRoundRect(4, 199, 70,  35, 8, RED   );      // Boton del menu de iniciar almacenamiento de datos
@@ -79,7 +75,7 @@ void menu_visualizacion_header(){
 	tft.setTextSize(3);tft.setCursor(252,205); tft.print(" B");
 
 
-	tft.drawCircle(200,20,6,YELLOW);// Circulo para indicar cuando se estan grabando los datos
+	tft.drawCircle(9,6,6,YELLOW);// Circulo para indicar cuando se estan grabando los datos
 
 	tft.drawRect(285, 4,25,15,YELLOW); // Bateria
 	tft.drawRect(310, 7, 5, 9,YELLOW);
@@ -93,7 +89,7 @@ void menu_visualizacion_header(){
 	tft.setTextSize(2);tft.setCursor(200,142); tft.print("Bujia:");
 
 	tft.setTextColor(WHITE);
-	tft.setTextSize(2);tft.setCursor(200,162); tft.print("Thr:");
+	tft.setTextSize(2);tft.setCursor(200,162); tft.print("ID:");
 }
 
 void menu_pacientes_header(){
@@ -238,10 +234,9 @@ void menu_calibracion_step5_header(){
 /* OPTIONS */
 void menu_principal_option(uint8_t i){
 	/* OPTIONS */
-	tft.drawRoundRect(48,  28, 224, 44, 8, i == 0 ? YELLOW : BLACK ); 
-    tft.drawRoundRect(48,  78, 224, 44, 8, i == 1 ? YELLOW : BLACK ); 
-    tft.drawRoundRect(48, 128, 224, 44, 8, i == 2 ? YELLOW : BLACK ); 
-    tft.drawRoundRect(48, 178, 224, 44, 8, i == 3 ? YELLOW : BLACK ); 
+	tft.drawRoundRect(48,  48, 224, 44, 8, i == 0 ? YELLOW : BLACK );
+	tft.drawRoundRect(48,  98, 224, 44, 8, i == 1 ? YELLOW : BLACK );
+	tft.drawRoundRect(48, 148, 224, 44, 8, i == 2 ? YELLOW : BLACK );
 }
 
 void menu_visualizacion_option(uint8_t i){
@@ -277,13 +272,13 @@ void menu_calibracion_option(uint8_t i){
 /* FIELD */
 void menu_visualizacion_fields(){
 	String str1 = String(global_val[BUJIA]);
-	String str2 = String(global_val[TH]);
+	String str2 = String(global_val[IDPAC]);
 	
 	while (str1.length() < 2){
 		str1 = '0' + str1;
 	}
 
-	while (str2.length() < 2){
+	while (str2.length() < 5){
 		str2 = '0' + str2;
 	}
 
@@ -291,9 +286,9 @@ void menu_visualizacion_fields(){
     tft.setTextColor(WHITE);
 	tft.setTextSize(2);tft.setCursor(280,142); tft.print(str1);
 
-	/* TH */
+	/* ID */
 	tft.setTextColor(WHITE);
-	tft.setTextSize(2);tft.setCursor(270,162); tft.print(str2);	
+	tft.setTextSize(2);tft.setCursor(250,162); tft.print(str2);	
 
 	/* LECTURA */
 	tft.setTextColor(WHITE); 
@@ -389,12 +384,33 @@ void menu_visualizacion_signal(uint32_t x, uint8_t reset){
 }
 
 /* STATUS */
-void batteryStatus(float x){
+void batteryStatus(float x, float y){
+	// Bateria medidor
+	tft.setCursor(230,5); tft.setTextColor(YELLOW); tft.setTextSize(2); tft.print("S");
+	tft.drawRect(245, 4,25,15,YELLOW); 
+    tft.drawRect(245, 4, 9,15,YELLOW);
+    tft.drawRect(253, 4, 9,15,YELLOW);
+    tft.drawRect(270, 7, 5, 9,YELLOW);
+    if (y >= 4.0){
+    	tft.fillRect(246, 5, 7,13,GREEN);  
+    	tft.fillRect(254, 5, 7,13,GREEN);
+    	tft.fillRect(262, 5, 7,13,GREEN);
+  	}
+  	else if (y >= 3.6){
+      	tft.fillRect(246, 5, 7,13,GREEN); 
+		tft.fillRect(254, 5, 7,13,GREEN);
+		tft.fillRect(262, 5, 7,13,BLACK);
+    }else{
+		tft.fillRect(246, 5, 7,13,RED); 
+		tft.fillRect(254, 5, 7,13,BLACK);
+		tft.fillRect(262, 5, 7,13,BLACK);
+    }
+
 	// Bateria
 	tft.drawRect(285, 4,25,15,YELLOW); 
-    tft.drawRect(310, 7, 5, 9,YELLOW);
     tft.drawRect(285, 4, 9,15,YELLOW);
     tft.drawRect(293, 4, 9,15,YELLOW);
+    tft.drawRect(310, 7, 5, 9,YELLOW);
 
 	if (x >= 4.0){
     	tft.fillRect(286, 5, 7,13,GREEN);  
@@ -414,13 +430,13 @@ void batteryStatus(float x){
 
 void bluetoothStatus(uint8_t x){
 	if ( x == 0){
-		tft.drawBitmap(260,4, bmp_16_bt, 16,16, GREEN);
+		tft.drawBitmap(210,4, bmp_16_bt, 16,16, GREEN);
 	}
 	else if (x == 1){
-		tft.drawBitmap(260,4, bmp_16_bt, 16,16, YELLOW);
+		tft.drawBitmap(210,4, bmp_16_bt, 16,16, YELLOW);
 	}
 	else{
-		tft.drawBitmap(260,4, bmp_16_bt, 16,16, RED);	
+		tft.drawBitmap(210,4, bmp_16_bt, 16,16, RED);	
 	}
 }
 
@@ -438,13 +454,13 @@ void blinknoSD(uint8_t force){
 
 void blinkREC(uint8_t force){
 	static uint8_t on = false;
-	tft.setCursor(211,16); tft.setTextColor(RED); tft.setTextSize(1); tft.print("REC.");
 	if (on && !force ){
-		tft.fillCircle(200,20,5,RED);
+		tft.setCursor(20,3); tft.setTextColor(RED); tft.setTextSize(1); tft.print("REC.");
+		tft.fillCircle(9,6,5,RED);
 	}
 	else{
-		tft.fillCircle(200,20,5,BLACK);
-		tft.setCursor(211,16); tft.setTextColor(BLACK); tft.setTextSize(1); tft.print("REC.");
+		tft.fillCircle(9,6,5,BLACK);
+		tft.setCursor(20,3); tft.setTextColor(BLACK); tft.setTextSize(1); tft.print("REC.");
 	}
 	on = ~on;
 }

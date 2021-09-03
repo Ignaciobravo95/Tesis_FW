@@ -240,7 +240,7 @@ void menu_pacientes_fields();
  * @param <refresh> <Refresca la pantalla>
  *
  */
-void batteryStatus(float x);
+void batteryStatus(float x,float y);
 
 /**
  * @brief <Imprime el menu principal en el display>
