@@ -340,21 +340,27 @@ void menu_pacientes_fields(){
 /* SIGNAL */
 void menu_visualizacion_signal(uint32_t x, uint8_t reset){
 	static uint8_t sample_number = 5, last_value = 188;
+	static float last_presion_disp = 0.0;
 	uint8_t new_value;
 	float presion = (x - offset)*slope;// * 5.0 / 16000000.0 ;
+
 	if (presion > 5.0)
 		presion = 0;
 
-	/* LECTURA NUMBER */
-	tft.fillRect(195,76,96,35,BLACK);
 
 	if (!reset){
-		if(presion > 1.8){
-		    tft.setTextColor(RED); 
-		    tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,2);
-		}else{
-		    tft.setTextColor(WHITE); 
-		    tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,2);
+		if (abs(presion - last_presion_disp) > 0.03)
+		{
+			/* LECTURA NUMBER */
+			tft.fillRect(195,76,96,35,BLACK);
+			if(presion > 1.8){
+			    tft.setTextColor(RED); 
+			    tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,2);
+			}else{
+			    tft.setTextColor(WHITE); 
+			    tft.setTextSize(4);tft.setCursor(195,76); tft.print(presion,2);
+			}
+			last_presion_disp = presion;
 		}
 		/* LECTURA VS SAMPLE */
 		sample_number++;

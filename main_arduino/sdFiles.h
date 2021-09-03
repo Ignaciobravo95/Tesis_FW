@@ -35,7 +35,7 @@
  * @return <Add Return Informaiton here>
  */
 int initSDroutine(uint32_t BUJIA, uint32_t ID);
-void writeSD();
+void writeSD(uint16_t SDbufferindex,uint8_t frame);
 
 
 #endif

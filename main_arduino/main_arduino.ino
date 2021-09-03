@@ -58,10 +58,14 @@ uint8_t recordingSD = 0;
 uint8_t noSD = 0;
 uint8_t bufferSDfull = 0;
 uint8_t initSD = 0;
+uint8_t  nframe = 0;
+uint16_t SDbufferindex = 0;
 
 /* GLOBAL */
 extern uint32_t global_val[5];
 extern float bufferSD[SDWRITEBUFFER];
+extern float timevector[SDWRITEBUFFER];
+extern float CONSTANT_FRAMS_Sec;
 extern uint8_t adcvalue[3];
 
 volatile uint32_t offset = 0;
@@ -93,11 +97,17 @@ void setup(void){
 	Timer1.initialize(TIMER0_PERIOD); /* Value in microseconds? */
 
 	/* TIMER TASK CALC */
-	PERIODIC_TASK4_PERIOD = (uint32_t)(1000000/global_val[FREC]);
+	PERIODIC_TASK4_PERIOD = (uint32_t)(1000000/10);//global_val[FREC]);
 	task4_count_value = PERIODIC_TASK4_PERIOD / TIMER0_PERIOD; 	
 	task3_count_value = PERIODIC_TASK3_PERIOD / TIMER0_PERIOD; 	
 	task2_count_value = PERIODIC_TASK2_PERIOD / TIMER0_PERIOD;
 	task1_count_value = PERIODIC_TASK1_PERIOD / TIMER0_PERIOD;
+
+	/*INIT TIME VECTOR*/
+	for (unsigned int i= 0; i < SDWRITEBUFFER; i++){
+     	timevector[i] = (float)i*PERIODIC_TASK4_PERIOD/1000000.0;
+    }
+    CONSTANT_FRAMS_Sec =  SDWRITEBUFFER*PERIODIC_TASK4_PERIOD/1000000;
   	
 	/* INIT SERIAL COMMUNICATIONS */
 	Serial.begin(9600);
@@ -229,8 +239,6 @@ void loop(void){
 	static uint8_t nDigit = 1;			// Number of digits 
 	static uint16_t encoder_count = 0;	// Rotative encoder counter to switch between items or edit values
 	static uint16_t encoder_mode = 0;  	// Encoder mode - 0 switch items - 1 modifie value
-	static uint16_t SDbufferindex = 0;
-
 	
 	/* Main LOOP */
 	/* BUTTON PRESSED EVENT */
@@ -409,9 +417,10 @@ void loop(void){
 
 	/* WRITE DATA TO SD IF BUFFER IS FULL */
 	if (bufferSDfull){
-		writeSD();
 		bufferSDfull = 0;
 		SDbufferindex = 0;
+		writeSD(SDWRITEBUFFER,nframe);
+		nframe++;
 	}
 
 	/* SERIAL DATA FROM BT EVENT */
@@ -551,7 +560,10 @@ void clearFlagRecordingSD(){
 	VIS.items_number = 4;
 	upperlimit = currMenu -> items_number;		
 	if(recordingSD==1)
-		writeSD();
+	{
+		writeSD(SDbufferindex,nframe);
+	}
+	nframe = 0;
 	recordingSD = 0;
 	initSD = 0;
 	noSD = 0;

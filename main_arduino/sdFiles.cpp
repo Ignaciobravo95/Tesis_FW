@@ -9,9 +9,14 @@
 /************************************************
  *			GLOBAL VARIABLE SECTION
  ***********************************************/
+float timevector[SDWRITEBUFFER];
 float bufferSD[SDWRITEBUFFER];
+float CONSTANT_FRAMS_Sec;
 String file_name;
 File dataFile;
+
+
+
 
 /************************************************
  *   		PRIVATE FUNCTION DEFINITION
@@ -41,10 +46,12 @@ int initSDroutine(uint32_t BUJIA, uint32_t ID){
 }
 
 
-void writeSD(){
+void writeSD(uint16_t SDbufferindex,uint8_t frame){
 	/* GENERATE DATAFILE TO WRITE TO */
 	dataFile = SD.open(file_name, FILE_WRITE);
-	for (unsigned int i= 0; i < SDWRITEBUFFER; i++){
+	for (unsigned int i= 0; i < SDbufferindex; i++){
+     	dataFile.print(timevector[i]+frame*CONSTANT_FRAMS_Sec);
+     	dataFile.print(",");
      	dataFile.print(bufferSD[i]);
      	dataFile.println(",");
     }
